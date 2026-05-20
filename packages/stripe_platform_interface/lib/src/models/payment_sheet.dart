@@ -68,7 +68,7 @@ abstract class SetupPaymentSheetParameters with _$SetupPaymentSheetParameters {
     PaymentSheetGooglePay? googlePay,
 
     /// Configuration related to Link
-    LinkDisplayParams? linkDisplayParams,
+    @JsonKey(name: 'link') LinkDisplayParams? linkDisplayParams,
 
     /// Flag that allows payment methods that do not move money at the send of the checkout.
     ///
@@ -121,8 +121,29 @@ abstract class SetupPaymentSheetParameters with _$SetupPaymentSheetParameters {
     ///Note: Card brand filtering is not currently supported in Link.
     CardBrandAcceptance? cardBrandAcceptance,
 
+    ///
+    ///Configuration for filtering cards by funding type.
+    /// @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+    ///
+    CardFundingFiltering? cardFundingFiltering,
+
     /// Configuration for custom payment methods in PaymentSheet
     CustomPaymentMethodConfiguration? customPaymentMethodConfiguration,
+
+    ///By default, PaymentSheet offers a card scan button within the new card entry form.
+    /// When opensCardScannerAutomatically is set to true,
+    /// the card entry form will initialize with the card scanner already open.
+    /// Defaults to false.
+    bool? opensCardScannerAutomatically,
+
+    /// A map of payment method types to their terms display configuration.
+    /// Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
+    /// Keys are snake_case payment method type strings (e.g. "card", "us_bank_account").
+    /// See https://docs.stripe.com/api/payment_methods/object#payment_method_object-type for the full list of values.
+    /// Values are `TermsDisplay.automatic` or `TermsDisplay.never`.
+    /// If not set, defaults to `TermsDisplay.automatic` for all payment method types.
+    @JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson)
+    Map<String, TermsDisplay>? termsDisplay,
   }) = _SetupParameters;
 
   factory SetupPaymentSheetParameters.fromJson(Map<String, dynamic> json) =>
@@ -141,12 +162,16 @@ abstract class IntentConfiguration with _$IntentConfiguration {
     /// If not set, the payment sheet will display all the payment methods enabled in your Stripe dashboard.
     List<String>? paymentMethodTypes,
 
+    /// Configuration ID for the selected payment method configuration.
+    /// See https://stripe.com/docs/payments/multiple-payment-method-configs
+    String? paymentMethodConfigurationId,
+
     /// Called when the customer confirms payment. Your implementation should create
     /// a payment intent or setupintent on your server and call the intent creation callback with its client secret or an error if one occurred.
     @JsonKey(includeFromJson: false, includeToJson: false)
     ConfirmHandler? confirmHandler,
 
-    /// Called when the customer confirms token payment. 
+    /// Called when the customer confirms token payment.
     @JsonKey(includeFromJson: false, includeToJson: false)
     ConfirmTokenHandler? confirmTokenHandler,
 
@@ -639,6 +664,22 @@ List<int> _cardBrandListToJson(List<CardBrand>? list) {
   return list.map((e) => e.brandValue).toList();
 }
 
+Map<String, String>? _termsDisplayToJson(Map<String, TermsDisplay>? map) {
+  if (map == null) return null;
+  return map.map((key, value) => MapEntry(key, value.name));
+}
+
+Map<String, TermsDisplay>? _termsDisplayFromJson(Map<String, dynamic>? json) {
+  if (json == null) return null;
+  return json.map((key, value) => MapEntry(
+        key,
+        TermsDisplay.values.firstWhere(
+          (e) => value is String && e.name == value,
+          orElse: () => TermsDisplay.automatic,
+        ),
+      ));
+}
+
 /// Card brand categories that can be allowed or disallowed
 enum CardBrandCategory {
   /// Visa branded cards
@@ -665,6 +706,15 @@ enum CardBrandAcceptanceFilter {
 
   /// Accept all card brands except the specified ones
   disallowed,
+}
+
+///Controls whether legal terms (e.g. mandate disclaimers) are displayed for a payment method.
+enum TermsDisplay {
+  /// Show legal agreements only when necessary.
+  automatic,
+
+  /// Never show legal agreements.
+  never,
 }
 
 @freezed
@@ -701,7 +751,7 @@ abstract class CardBrandAcceptance with _$CardBrandAcceptance {
 abstract class LinkDisplayParams with _$LinkDisplayParams {
   const factory LinkDisplayParams({
     /// Display configuration for Link
-    required LinkDisplay linkDisplay,
+    @JsonKey(name: 'display') required LinkDisplay linkDisplay,
   }) = _LinkDisplayParams;
 
   factory LinkDisplayParams.fromJson(Map<String, Object?> json) =>
@@ -832,6 +882,7 @@ abstract class FlatConfig with _$FlatConfig {
 /// Describes the appearance of the floating button style payment method row
 @freezed
 abstract class FloatingConfig with _$FloatingConfig {
+  @JsonSerializable(explicitToJson: true)
   const factory FloatingConfig({
     /// The spacing between payment method rows.
     double? spacing,
@@ -844,6 +895,7 @@ abstract class FloatingConfig with _$FloatingConfig {
 /// Describes the appearance of the row in the Embedded Mobile Payment Element
 @freezed
 abstract class RowConfig with _$RowConfig {
+  @JsonSerializable(explicitToJson: true)
   const factory RowConfig({
     /// The display style of the row.
     RowStyle? style,
@@ -868,6 +920,7 @@ abstract class RowConfig with _$RowConfig {
 @freezed
 abstract class EmbeddedPaymentElementAppearance
     with _$EmbeddedPaymentElementAppearance {
+  @JsonSerializable(explicitToJson: true)
   const factory EmbeddedPaymentElementAppearance({RowConfig? row}) =
       _EmbeddedPaymentElementAppearance;
 
@@ -938,4 +991,35 @@ abstract class CustomPaymentMethodConfiguration
   factory CustomPaymentMethodConfiguration.fromJson(
     Map<String, dynamic> json,
   ) => _$CustomPaymentMethodConfigurationFromJson(json);
+}
+
+/// Card funding types that can be filtered.
+/// Note: This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+enum CardFundingType {
+  /// Debit cards
+  debit,
+
+  /// Credit cards
+  credit,
+
+  /// Prepaid cards
+  prepaid,
+
+  /// Unknown or undetermined funding type.
+  /// Include this if you want to accept cards where the funding type cannot be determined from card metadata.
+  unknown,
+}
+
+/// Configuration for filtering cards by funding type.
+/// Note: This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+@freezed
+abstract class CardFundingFiltering with _$CardFundingFiltering {
+  @JsonSerializable(explicitToJson: true)
+  const factory CardFundingFiltering({
+    /// List of allowed card funding types. If not set, all types are accepted.
+    List<CardFundingType>? allowedCardFundingTypes,
+  }) = _CardFundingFiltering;
+
+  factory CardFundingFiltering.fromJson(Map<String, dynamic> json) =>
+      _$CardFundingFilteringFromJson(json);
 }

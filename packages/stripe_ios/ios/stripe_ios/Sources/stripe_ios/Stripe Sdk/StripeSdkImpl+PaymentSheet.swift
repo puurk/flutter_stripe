@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) import StripePaymentSheet
+@_spi(ExperimentalAllowsRemovalOfLastSavedPaymentMethodAPI) @_spi(CustomerSessionBetaAccess) @_spi(EmbeddedPaymentElementPrivateBeta) @_spi(STP) @_spi(PaymentMethodOptionsSetupFutureUsagePreview) @_spi(CustomPaymentMethodsBeta) @_spi(ConfirmationTokensPublicPreview) @_spi(CardFundingFilteringPrivatePreview) import StripePaymentSheet
 
 extension StripeSdkImpl {
     internal func buildPaymentSheetConfiguration(
@@ -122,6 +122,10 @@ extension StripeSdkImpl {
             configuration.allowsRemovalOfLastSavedPaymentMethod = allowsRemovalOfLastSavedPaymentMethod
         }
 
+        if let opensCardScannerAutomatically = params["opensCardScannerAutomatically"] as? Bool {
+            configuration.opensCardScannerAutomatically = opensCardScannerAutomatically
+        }
+
         if let paymentMethodOrder = params["paymentMethodOrder"] as? [String] {
             configuration.paymentMethodOrder = paymentMethodOrder
         }
@@ -136,6 +140,9 @@ extension StripeSdkImpl {
         }
 
         configuration.cardBrandAcceptance = StripeSdkImpl.computeCardBrandAcceptance(params: params)
+        if let allowedCardFundingTypes = StripeSdkImpl.computeAllowedCardFundingTypes(params: params) {
+            configuration.allowedCardFundingTypes = allowedCardFundingTypes
+        }
 
         // Parse custom payment method configuration
         if let customPaymentMethodConfig = params["customPaymentMethodConfiguration"] as? [String: Any] {
@@ -143,6 +150,10 @@ extension StripeSdkImpl {
             from: customPaymentMethodConfig,
             sdkImpl: self
           )
+        }
+
+        if let termsDisplay = StripeSdkImpl.mapToTermsDisplay(params: params) {
+            configuration.termsDisplay = termsDisplay
         }
 
         return (nil, configuration)
@@ -228,6 +239,7 @@ extension StripeSdkImpl {
                 modeParams: modeParams,
                 paymentMethodTypes: intentConfiguration["paymentMethodTypes"] as? [String],
                 onBehalfOf: intentConfiguration["onBehalfOf"] as? String,
+                paymentMethodConfigurationId: intentConfiguration["paymentMethodConfigurationId"] as? String,
                 captureMethod: StripeSdkImpl.mapCaptureMethod(captureMethodString),
                 useConfirmationTokenCallback: hasConfirmationTokenHandler
             )
@@ -286,6 +298,30 @@ extension StripeSdkImpl {
         }
     }
 
+    internal static func computeAllowedCardFundingTypes(params: NSDictionary) -> PaymentSheet.CardFundingType? {
+        guard let cardFundingFiltering = params["cardFundingFiltering"] as? NSDictionary,
+              let allowedTypes = cardFundingFiltering["allowedCardFundingTypes"] as? [String] else {
+            return nil
+        }
+
+        var result: PaymentSheet.CardFundingType = []
+        for type in allowedTypes {
+            switch type {
+            case "debit":
+                result.insert(.debit)
+            case "credit":
+                result.insert(.credit)
+            case "prepaid":
+                result.insert(.prepaid)
+            case "unknown":
+                result.insert(.unknown)
+            default:
+                break
+            }
+        }
+        return result.isEmpty ? nil : result
+    }
+
     static func mapCaptureMethod(_ captureMethod: String?) -> PaymentSheet.IntentConfiguration.CaptureMethod {
         if let captureMethod = captureMethod {
             switch captureMethod {
@@ -302,6 +338,7 @@ extension StripeSdkImpl {
         modeParams: NSDictionary,
         paymentMethodTypes: [String]?,
         onBehalfOf: String?,
+        paymentMethodConfigurationId: String?,
         captureMethod: PaymentSheet.IntentConfiguration.CaptureMethod,
         useConfirmationTokenCallback: Bool
     ) -> PaymentSheet.IntentConfiguration {
@@ -326,6 +363,7 @@ extension StripeSdkImpl {
                 mode: mode,
                 paymentMethodTypes: paymentMethodTypes,
                 onBehalfOf: onBehalfOf,
+                paymentMethodConfigurationId: paymentMethodConfigurationId,
                 confirmationTokenConfirmHandler: { confirmationToken in
                     return try await withCheckedThrowingContinuation { continuation in
                         self.paymentSheetConfirmationTokenIntentCreationCallback = { result in
@@ -346,6 +384,7 @@ extension StripeSdkImpl {
                 mode: mode,
                 paymentMethodTypes: paymentMethodTypes,
                 onBehalfOf: onBehalfOf,
+                paymentMethodConfigurationId: paymentMethodConfigurationId,
                 confirmHandler: { paymentMethod, shouldSavePaymentMethod, intentCreationCallback in
                     self.paymentSheetIntentCreationCallback = intentCreationCallback
                     self.emitter?.emitOnConfirmHandlerCallback([
@@ -448,6 +487,27 @@ extension StripeSdkImpl {
         default:
             return .automatic
         }
+    }
+
+    internal static func mapToTermsDisplay(params: NSDictionary) -> [STPPaymentMethodType: PaymentSheet.TermsDisplay]? {
+        guard let termsDisplayDict = params["termsDisplay"] as? [String: String] else {
+            return nil
+        }
+
+        var result: [STPPaymentMethodType: PaymentSheet.TermsDisplay] = [:]
+        for (code, value) in termsDisplayDict {
+            let paymentMethodType = STPPaymentMethodType.fromIdentifier(code)
+            let termsDisplay: PaymentSheet.TermsDisplay? = switch value {
+            case "never": .never
+            case "automatic": .automatic
+            default: nil
+            }
+            if paymentMethodType != .unknown, let termsDisplay {
+                result[paymentMethodType] = termsDisplay
+            }
+        }
+
+        return result.isEmpty ? nil : result
     }
 
     internal static func mapToLinkDisplay(value: String?) -> PaymentSheet.LinkConfiguration.Display {

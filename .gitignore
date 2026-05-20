@@ -65,3 +65,5 @@ lcov.info
 /playwright/.cache/
 
 **/build/
+# claude AI
+.claude/

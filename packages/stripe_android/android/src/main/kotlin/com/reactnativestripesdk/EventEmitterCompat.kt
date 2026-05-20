@@ -84,7 +84,19 @@ class EventEmitterCompat(
     invoke("embeddedPaymentElementLoadingFailed", value)
   }
 
+  fun emitEmbeddedPaymentElementUpdateComplete(value: ReadableMap?) {
+    invoke("embeddedPaymentElementUpdateComplete", value)
+  }
+
   fun emitOnCustomPaymentMethodConfirmHandlerCallback(value: ReadableMap?) {
     invoke("onCustomPaymentMethodConfirmHandlerCallback", value)
+  }
+
+  fun emitPaymentMethodMessagingElementDidUpdateHeight(value: ReadableMap?) {
+    invoke("paymentMethodMessagingElementDidUpdateHeight", value)
+  }
+
+  fun emitPaymentMethodMessagingElementConfigureResult(value: ReadableMap?) {
+    invoke("paymentMethodMessagingElementConfigureResult", value)
   }
 }

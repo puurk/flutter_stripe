@@ -106,6 +106,25 @@ Now you can use Stripe with Flutter web! Notice right now it is highly experimen
 
 To use Stripe on web, it is required to add `flutter_stripe_web` in your pubspec file
 
+### Running on WASM
+
+To run the project with WebAssembly support:
+
+1. Build the web app with WASM:
+```sh
+flutter build web --wasm
+```
+
+2. Serve the built app with the required CORS headers:
+```sh
+dhttpd --path build/web --headers "Cross-Origin-Opener-Policy:same-origin,Cross-Origin-Embedder-Policy:credentialless"
+```
+
+**Note:** The `dhttpd` package is required to serve the app with proper CORS headers. Install it with:
+```sh
+dart pub global activate dhttpd
+```
+
 ## Usage
 
 ### Card payments
@@ -207,22 +226,4 @@ Future<void> onGooglePayResult(paymentResult) async {
 
 ## Contributing
 
-You can help us make this project better, feel free to open an new issue or a pull request.
-
-##### Setup
-
-This project uses [melos](https://github.com/invertase/melos) to manage all the packages inside this repo.
-
-- Install melos: `dart pub global activate melos`
-- Setup melos in your local folder: `melos bootstrap`
-
-##### Useful commands
-
-- Format `melos run format`
-- Analyze `melos run analyze`
-- Test `melos run unittest`
-- Pub get `melos run get`
-
-##### Publishing
-
-- Use `melos version` and `melos publish` to keep all the repositories in sync
+You can help us make this project better, feel free to open an new issue or a pull request. Make sure to follow our [contribution guidelines](https://github.com/flutter-stripe/flutter_stripe/blob/HEAD/CONTRIBUTING.md).

@@ -50,7 +50,7 @@ mixin _$SetupPaymentSheetParameters {
 @JsonKey(toJson: UserInterfaceStyleKey.toJson) ThemeMode? get style;/// Configuration related to Google Pay
 /// If set, PaymentSheet displays Google Pay as a payment option
  PaymentSheetGooglePay? get googlePay;/// Configuration related to Link
- LinkDisplayParams? get linkDisplayParams;/// Flag that allows payment methods that do not move money at the send of the checkout.
+@JsonKey(name: 'link') LinkDisplayParams? get linkDisplayParams;/// Flag that allows payment methods that do not move money at the send of the checkout.
 ///
 /// Defaul value is false.
  bool get allowsDelayedPaymentMethods;/// Appearance of the paymentsheet.
@@ -80,8 +80,22 @@ mixin _$SetupPaymentSheetParameters {
 ///
 /// Note: This is only a client-side solution.
 ///Note: Card brand filtering is not currently supported in Link.
- CardBrandAcceptance? get cardBrandAcceptance;/// Configuration for custom payment methods in PaymentSheet
- CustomPaymentMethodConfiguration? get customPaymentMethodConfiguration;
+ CardBrandAcceptance? get cardBrandAcceptance;///
+///Configuration for filtering cards by funding type.
+/// @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+///
+ CardFundingFiltering? get cardFundingFiltering;/// Configuration for custom payment methods in PaymentSheet
+ CustomPaymentMethodConfiguration? get customPaymentMethodConfiguration;///By default, PaymentSheet offers a card scan button within the new card entry form.
+/// When opensCardScannerAutomatically is set to true,
+/// the card entry form will initialize with the card scanner already open.
+/// Defaults to false.
+ bool? get opensCardScannerAutomatically;/// A map of payment method types to their terms display configuration.
+/// Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
+/// Keys are snake_case payment method type strings (e.g. "card", "us_bank_account").
+/// See https://docs.stripe.com/api/payment_methods/object#payment_method_object-type for the full list of values.
+/// Values are `TermsDisplay.automatic` or `TermsDisplay.never`.
+/// If not set, defaults to `TermsDisplay.automatic` for all payment method types.
+@JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson) Map<String, TermsDisplay>? get termsDisplay;
 /// Create a copy of SetupPaymentSheetParameters
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -94,16 +108,16 @@ $SetupPaymentSheetParametersCopyWith<SetupPaymentSheetParameters> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SetupPaymentSheetParameters&&(identical(other.customFlow, customFlow) || other.customFlow == customFlow)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.primaryButtonLabel, primaryButtonLabel) || other.primaryButtonLabel == primaryButtonLabel)&&(identical(other.customerEphemeralKeySecret, customerEphemeralKeySecret) || other.customerEphemeralKeySecret == customerEphemeralKeySecret)&&(identical(other.customerSessionClientSecret, customerSessionClientSecret) || other.customerSessionClientSecret == customerSessionClientSecret)&&(identical(other.paymentIntentClientSecret, paymentIntentClientSecret) || other.paymentIntentClientSecret == paymentIntentClientSecret)&&(identical(other.setupIntentClientSecret, setupIntentClientSecret) || other.setupIntentClientSecret == setupIntentClientSecret)&&(identical(other.intentConfiguration, intentConfiguration) || other.intentConfiguration == intentConfiguration)&&(identical(other.merchantDisplayName, merchantDisplayName) || other.merchantDisplayName == merchantDisplayName)&&(identical(other.applePay, applePay) || other.applePay == applePay)&&(identical(other.style, style) || other.style == style)&&(identical(other.googlePay, googlePay) || other.googlePay == googlePay)&&(identical(other.linkDisplayParams, linkDisplayParams) || other.linkDisplayParams == linkDisplayParams)&&(identical(other.allowsDelayedPaymentMethods, allowsDelayedPaymentMethods) || other.allowsDelayedPaymentMethods == allowsDelayedPaymentMethods)&&(identical(other.appearance, appearance) || other.appearance == appearance)&&(identical(other.billingDetails, billingDetails) || other.billingDetails == billingDetails)&&(identical(other.allowsRemovalOfLastSavedPaymentMethod, allowsRemovalOfLastSavedPaymentMethod) || other.allowsRemovalOfLastSavedPaymentMethod == allowsRemovalOfLastSavedPaymentMethod)&&const DeepCollectionEquality().equals(other.paymentMethodOrder, paymentMethodOrder)&&(identical(other.returnURL, returnURL) || other.returnURL == returnURL)&&(identical(other.billingDetailsCollectionConfiguration, billingDetailsCollectionConfiguration) || other.billingDetailsCollectionConfiguration == billingDetailsCollectionConfiguration)&&(identical(other.removeSavedPaymentMethodMessage, removeSavedPaymentMethodMessage) || other.removeSavedPaymentMethodMessage == removeSavedPaymentMethodMessage)&&const DeepCollectionEquality().equals(other.preferredNetworks, preferredNetworks)&&(identical(other.cardBrandAcceptance, cardBrandAcceptance) || other.cardBrandAcceptance == cardBrandAcceptance)&&(identical(other.customPaymentMethodConfiguration, customPaymentMethodConfiguration) || other.customPaymentMethodConfiguration == customPaymentMethodConfiguration));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SetupPaymentSheetParameters&&(identical(other.customFlow, customFlow) || other.customFlow == customFlow)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.primaryButtonLabel, primaryButtonLabel) || other.primaryButtonLabel == primaryButtonLabel)&&(identical(other.customerEphemeralKeySecret, customerEphemeralKeySecret) || other.customerEphemeralKeySecret == customerEphemeralKeySecret)&&(identical(other.customerSessionClientSecret, customerSessionClientSecret) || other.customerSessionClientSecret == customerSessionClientSecret)&&(identical(other.paymentIntentClientSecret, paymentIntentClientSecret) || other.paymentIntentClientSecret == paymentIntentClientSecret)&&(identical(other.setupIntentClientSecret, setupIntentClientSecret) || other.setupIntentClientSecret == setupIntentClientSecret)&&(identical(other.intentConfiguration, intentConfiguration) || other.intentConfiguration == intentConfiguration)&&(identical(other.merchantDisplayName, merchantDisplayName) || other.merchantDisplayName == merchantDisplayName)&&(identical(other.applePay, applePay) || other.applePay == applePay)&&(identical(other.style, style) || other.style == style)&&(identical(other.googlePay, googlePay) || other.googlePay == googlePay)&&(identical(other.linkDisplayParams, linkDisplayParams) || other.linkDisplayParams == linkDisplayParams)&&(identical(other.allowsDelayedPaymentMethods, allowsDelayedPaymentMethods) || other.allowsDelayedPaymentMethods == allowsDelayedPaymentMethods)&&(identical(other.appearance, appearance) || other.appearance == appearance)&&(identical(other.billingDetails, billingDetails) || other.billingDetails == billingDetails)&&(identical(other.allowsRemovalOfLastSavedPaymentMethod, allowsRemovalOfLastSavedPaymentMethod) || other.allowsRemovalOfLastSavedPaymentMethod == allowsRemovalOfLastSavedPaymentMethod)&&const DeepCollectionEquality().equals(other.paymentMethodOrder, paymentMethodOrder)&&(identical(other.returnURL, returnURL) || other.returnURL == returnURL)&&(identical(other.billingDetailsCollectionConfiguration, billingDetailsCollectionConfiguration) || other.billingDetailsCollectionConfiguration == billingDetailsCollectionConfiguration)&&(identical(other.removeSavedPaymentMethodMessage, removeSavedPaymentMethodMessage) || other.removeSavedPaymentMethodMessage == removeSavedPaymentMethodMessage)&&const DeepCollectionEquality().equals(other.preferredNetworks, preferredNetworks)&&(identical(other.cardBrandAcceptance, cardBrandAcceptance) || other.cardBrandAcceptance == cardBrandAcceptance)&&(identical(other.cardFundingFiltering, cardFundingFiltering) || other.cardFundingFiltering == cardFundingFiltering)&&(identical(other.customPaymentMethodConfiguration, customPaymentMethodConfiguration) || other.customPaymentMethodConfiguration == customPaymentMethodConfiguration)&&(identical(other.opensCardScannerAutomatically, opensCardScannerAutomatically) || other.opensCardScannerAutomatically == opensCardScannerAutomatically)&&const DeepCollectionEquality().equals(other.termsDisplay, termsDisplay));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,customFlow,customerId,primaryButtonLabel,customerEphemeralKeySecret,customerSessionClientSecret,paymentIntentClientSecret,setupIntentClientSecret,intentConfiguration,merchantDisplayName,applePay,style,googlePay,linkDisplayParams,allowsDelayedPaymentMethods,appearance,billingDetails,allowsRemovalOfLastSavedPaymentMethod,const DeepCollectionEquality().hash(paymentMethodOrder),returnURL,billingDetailsCollectionConfiguration,removeSavedPaymentMethodMessage,const DeepCollectionEquality().hash(preferredNetworks),cardBrandAcceptance,customPaymentMethodConfiguration]);
+int get hashCode => Object.hashAll([runtimeType,customFlow,customerId,primaryButtonLabel,customerEphemeralKeySecret,customerSessionClientSecret,paymentIntentClientSecret,setupIntentClientSecret,intentConfiguration,merchantDisplayName,applePay,style,googlePay,linkDisplayParams,allowsDelayedPaymentMethods,appearance,billingDetails,allowsRemovalOfLastSavedPaymentMethod,const DeepCollectionEquality().hash(paymentMethodOrder),returnURL,billingDetailsCollectionConfiguration,removeSavedPaymentMethodMessage,const DeepCollectionEquality().hash(preferredNetworks),cardBrandAcceptance,cardFundingFiltering,customPaymentMethodConfiguration,opensCardScannerAutomatically,const DeepCollectionEquality().hash(termsDisplay)]);
 
 @override
 String toString() {
-  return 'SetupPaymentSheetParameters(customFlow: $customFlow, customerId: $customerId, primaryButtonLabel: $primaryButtonLabel, customerEphemeralKeySecret: $customerEphemeralKeySecret, customerSessionClientSecret: $customerSessionClientSecret, paymentIntentClientSecret: $paymentIntentClientSecret, setupIntentClientSecret: $setupIntentClientSecret, intentConfiguration: $intentConfiguration, merchantDisplayName: $merchantDisplayName, applePay: $applePay, style: $style, googlePay: $googlePay, linkDisplayParams: $linkDisplayParams, allowsDelayedPaymentMethods: $allowsDelayedPaymentMethods, appearance: $appearance, billingDetails: $billingDetails, allowsRemovalOfLastSavedPaymentMethod: $allowsRemovalOfLastSavedPaymentMethod, paymentMethodOrder: $paymentMethodOrder, returnURL: $returnURL, billingDetailsCollectionConfiguration: $billingDetailsCollectionConfiguration, removeSavedPaymentMethodMessage: $removeSavedPaymentMethodMessage, preferredNetworks: $preferredNetworks, cardBrandAcceptance: $cardBrandAcceptance, customPaymentMethodConfiguration: $customPaymentMethodConfiguration)';
+  return 'SetupPaymentSheetParameters(customFlow: $customFlow, customerId: $customerId, primaryButtonLabel: $primaryButtonLabel, customerEphemeralKeySecret: $customerEphemeralKeySecret, customerSessionClientSecret: $customerSessionClientSecret, paymentIntentClientSecret: $paymentIntentClientSecret, setupIntentClientSecret: $setupIntentClientSecret, intentConfiguration: $intentConfiguration, merchantDisplayName: $merchantDisplayName, applePay: $applePay, style: $style, googlePay: $googlePay, linkDisplayParams: $linkDisplayParams, allowsDelayedPaymentMethods: $allowsDelayedPaymentMethods, appearance: $appearance, billingDetails: $billingDetails, allowsRemovalOfLastSavedPaymentMethod: $allowsRemovalOfLastSavedPaymentMethod, paymentMethodOrder: $paymentMethodOrder, returnURL: $returnURL, billingDetailsCollectionConfiguration: $billingDetailsCollectionConfiguration, removeSavedPaymentMethodMessage: $removeSavedPaymentMethodMessage, preferredNetworks: $preferredNetworks, cardBrandAcceptance: $cardBrandAcceptance, cardFundingFiltering: $cardFundingFiltering, customPaymentMethodConfiguration: $customPaymentMethodConfiguration, opensCardScannerAutomatically: $opensCardScannerAutomatically, termsDisplay: $termsDisplay)';
 }
 
 
@@ -114,11 +128,11 @@ abstract mixin class $SetupPaymentSheetParametersCopyWith<$Res>  {
   factory $SetupPaymentSheetParametersCopyWith(SetupPaymentSheetParameters value, $Res Function(SetupPaymentSheetParameters) _then) = _$SetupPaymentSheetParametersCopyWithImpl;
 @useResult
 $Res call({
- bool customFlow, String? customerId, String? primaryButtonLabel, String? customerEphemeralKeySecret, String? customerSessionClientSecret, String? paymentIntentClientSecret, String? setupIntentClientSecret, IntentConfiguration? intentConfiguration, String? merchantDisplayName, PaymentSheetApplePay? applePay,@JsonKey(toJson: UserInterfaceStyleKey.toJson) ThemeMode? style, PaymentSheetGooglePay? googlePay, LinkDisplayParams? linkDisplayParams, bool allowsDelayedPaymentMethods, PaymentSheetAppearance? appearance,@JsonKey(name: 'defaultBillingDetails') BillingDetails? billingDetails, bool? allowsRemovalOfLastSavedPaymentMethod, List<String>? paymentMethodOrder, String? returnURL, BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration, String? removeSavedPaymentMethodMessage,@JsonKey(toJson: _cardBrandListToJson) List<CardBrand>? preferredNetworks, CardBrandAcceptance? cardBrandAcceptance, CustomPaymentMethodConfiguration? customPaymentMethodConfiguration
+ bool customFlow, String? customerId, String? primaryButtonLabel, String? customerEphemeralKeySecret, String? customerSessionClientSecret, String? paymentIntentClientSecret, String? setupIntentClientSecret, IntentConfiguration? intentConfiguration, String? merchantDisplayName, PaymentSheetApplePay? applePay,@JsonKey(toJson: UserInterfaceStyleKey.toJson) ThemeMode? style, PaymentSheetGooglePay? googlePay,@JsonKey(name: 'link') LinkDisplayParams? linkDisplayParams, bool allowsDelayedPaymentMethods, PaymentSheetAppearance? appearance,@JsonKey(name: 'defaultBillingDetails') BillingDetails? billingDetails, bool? allowsRemovalOfLastSavedPaymentMethod, List<String>? paymentMethodOrder, String? returnURL, BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration, String? removeSavedPaymentMethodMessage,@JsonKey(toJson: _cardBrandListToJson) List<CardBrand>? preferredNetworks, CardBrandAcceptance? cardBrandAcceptance, CardFundingFiltering? cardFundingFiltering, CustomPaymentMethodConfiguration? customPaymentMethodConfiguration, bool? opensCardScannerAutomatically,@JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson) Map<String, TermsDisplay>? termsDisplay
 });
 
 
-$IntentConfigurationCopyWith<$Res>? get intentConfiguration;$PaymentSheetApplePayCopyWith<$Res>? get applePay;$PaymentSheetGooglePayCopyWith<$Res>? get googlePay;$LinkDisplayParamsCopyWith<$Res>? get linkDisplayParams;$PaymentSheetAppearanceCopyWith<$Res>? get appearance;$BillingDetailsCopyWith<$Res>? get billingDetails;$BillingDetailsCollectionConfigurationCopyWith<$Res>? get billingDetailsCollectionConfiguration;$CardBrandAcceptanceCopyWith<$Res>? get cardBrandAcceptance;$CustomPaymentMethodConfigurationCopyWith<$Res>? get customPaymentMethodConfiguration;
+$IntentConfigurationCopyWith<$Res>? get intentConfiguration;$PaymentSheetApplePayCopyWith<$Res>? get applePay;$PaymentSheetGooglePayCopyWith<$Res>? get googlePay;$LinkDisplayParamsCopyWith<$Res>? get linkDisplayParams;$PaymentSheetAppearanceCopyWith<$Res>? get appearance;$BillingDetailsCopyWith<$Res>? get billingDetails;$BillingDetailsCollectionConfigurationCopyWith<$Res>? get billingDetailsCollectionConfiguration;$CardBrandAcceptanceCopyWith<$Res>? get cardBrandAcceptance;$CardFundingFilteringCopyWith<$Res>? get cardFundingFiltering;$CustomPaymentMethodConfigurationCopyWith<$Res>? get customPaymentMethodConfiguration;
 
 }
 /// @nodoc
@@ -131,7 +145,7 @@ class _$SetupPaymentSheetParametersCopyWithImpl<$Res>
 
 /// Create a copy of SetupPaymentSheetParameters
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? customFlow = null,Object? customerId = freezed,Object? primaryButtonLabel = freezed,Object? customerEphemeralKeySecret = freezed,Object? customerSessionClientSecret = freezed,Object? paymentIntentClientSecret = freezed,Object? setupIntentClientSecret = freezed,Object? intentConfiguration = freezed,Object? merchantDisplayName = freezed,Object? applePay = freezed,Object? style = freezed,Object? googlePay = freezed,Object? linkDisplayParams = freezed,Object? allowsDelayedPaymentMethods = null,Object? appearance = freezed,Object? billingDetails = freezed,Object? allowsRemovalOfLastSavedPaymentMethod = freezed,Object? paymentMethodOrder = freezed,Object? returnURL = freezed,Object? billingDetailsCollectionConfiguration = freezed,Object? removeSavedPaymentMethodMessage = freezed,Object? preferredNetworks = freezed,Object? cardBrandAcceptance = freezed,Object? customPaymentMethodConfiguration = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? customFlow = null,Object? customerId = freezed,Object? primaryButtonLabel = freezed,Object? customerEphemeralKeySecret = freezed,Object? customerSessionClientSecret = freezed,Object? paymentIntentClientSecret = freezed,Object? setupIntentClientSecret = freezed,Object? intentConfiguration = freezed,Object? merchantDisplayName = freezed,Object? applePay = freezed,Object? style = freezed,Object? googlePay = freezed,Object? linkDisplayParams = freezed,Object? allowsDelayedPaymentMethods = null,Object? appearance = freezed,Object? billingDetails = freezed,Object? allowsRemovalOfLastSavedPaymentMethod = freezed,Object? paymentMethodOrder = freezed,Object? returnURL = freezed,Object? billingDetailsCollectionConfiguration = freezed,Object? removeSavedPaymentMethodMessage = freezed,Object? preferredNetworks = freezed,Object? cardBrandAcceptance = freezed,Object? cardFundingFiltering = freezed,Object? customPaymentMethodConfiguration = freezed,Object? opensCardScannerAutomatically = freezed,Object? termsDisplay = freezed,}) {
   return _then(_self.copyWith(
 customFlow: null == customFlow ? _self.customFlow : customFlow // ignore: cast_nullable_to_non_nullable
 as bool,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
@@ -156,8 +170,11 @@ as String?,billingDetailsCollectionConfiguration: freezed == billingDetailsColle
 as BillingDetailsCollectionConfiguration?,removeSavedPaymentMethodMessage: freezed == removeSavedPaymentMethodMessage ? _self.removeSavedPaymentMethodMessage : removeSavedPaymentMethodMessage // ignore: cast_nullable_to_non_nullable
 as String?,preferredNetworks: freezed == preferredNetworks ? _self.preferredNetworks : preferredNetworks // ignore: cast_nullable_to_non_nullable
 as List<CardBrand>?,cardBrandAcceptance: freezed == cardBrandAcceptance ? _self.cardBrandAcceptance : cardBrandAcceptance // ignore: cast_nullable_to_non_nullable
-as CardBrandAcceptance?,customPaymentMethodConfiguration: freezed == customPaymentMethodConfiguration ? _self.customPaymentMethodConfiguration : customPaymentMethodConfiguration // ignore: cast_nullable_to_non_nullable
-as CustomPaymentMethodConfiguration?,
+as CardBrandAcceptance?,cardFundingFiltering: freezed == cardFundingFiltering ? _self.cardFundingFiltering : cardFundingFiltering // ignore: cast_nullable_to_non_nullable
+as CardFundingFiltering?,customPaymentMethodConfiguration: freezed == customPaymentMethodConfiguration ? _self.customPaymentMethodConfiguration : customPaymentMethodConfiguration // ignore: cast_nullable_to_non_nullable
+as CustomPaymentMethodConfiguration?,opensCardScannerAutomatically: freezed == opensCardScannerAutomatically ? _self.opensCardScannerAutomatically : opensCardScannerAutomatically // ignore: cast_nullable_to_non_nullable
+as bool?,termsDisplay: freezed == termsDisplay ? _self.termsDisplay : termsDisplay // ignore: cast_nullable_to_non_nullable
+as Map<String, TermsDisplay>?,
   ));
 }
 /// Create a copy of SetupPaymentSheetParameters
@@ -255,6 +272,18 @@ $CardBrandAcceptanceCopyWith<$Res>? get cardBrandAcceptance {
 
   return $CardBrandAcceptanceCopyWith<$Res>(_self.cardBrandAcceptance!, (value) {
     return _then(_self.copyWith(cardBrandAcceptance: value));
+  });
+}/// Create a copy of SetupPaymentSheetParameters
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CardFundingFilteringCopyWith<$Res>? get cardFundingFiltering {
+    if (_self.cardFundingFiltering == null) {
+    return null;
+  }
+
+  return $CardFundingFilteringCopyWith<$Res>(_self.cardFundingFiltering!, (value) {
+    return _then(_self.copyWith(cardFundingFiltering: value));
   });
 }/// Create a copy of SetupPaymentSheetParameters
 /// with the given fields replaced by the non-null parameter values.
@@ -350,10 +379,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool customFlow,  String? customerId,  String? primaryButtonLabel,  String? customerEphemeralKeySecret,  String? customerSessionClientSecret,  String? paymentIntentClientSecret,  String? setupIntentClientSecret,  IntentConfiguration? intentConfiguration,  String? merchantDisplayName,  PaymentSheetApplePay? applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson)  ThemeMode? style,  PaymentSheetGooglePay? googlePay,  LinkDisplayParams? linkDisplayParams,  bool allowsDelayedPaymentMethods,  PaymentSheetAppearance? appearance, @JsonKey(name: 'defaultBillingDetails')  BillingDetails? billingDetails,  bool? allowsRemovalOfLastSavedPaymentMethod,  List<String>? paymentMethodOrder,  String? returnURL,  BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration,  String? removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson)  List<CardBrand>? preferredNetworks,  CardBrandAcceptance? cardBrandAcceptance,  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool customFlow,  String? customerId,  String? primaryButtonLabel,  String? customerEphemeralKeySecret,  String? customerSessionClientSecret,  String? paymentIntentClientSecret,  String? setupIntentClientSecret,  IntentConfiguration? intentConfiguration,  String? merchantDisplayName,  PaymentSheetApplePay? applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson)  ThemeMode? style,  PaymentSheetGooglePay? googlePay, @JsonKey(name: 'link')  LinkDisplayParams? linkDisplayParams,  bool allowsDelayedPaymentMethods,  PaymentSheetAppearance? appearance, @JsonKey(name: 'defaultBillingDetails')  BillingDetails? billingDetails,  bool? allowsRemovalOfLastSavedPaymentMethod,  List<String>? paymentMethodOrder,  String? returnURL,  BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration,  String? removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson)  List<CardBrand>? preferredNetworks,  CardBrandAcceptance? cardBrandAcceptance,  CardFundingFiltering? cardFundingFiltering,  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration,  bool? opensCardScannerAutomatically, @JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson)  Map<String, TermsDisplay>? termsDisplay)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SetupParameters() when $default != null:
-return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that.customerEphemeralKeySecret,_that.customerSessionClientSecret,_that.paymentIntentClientSecret,_that.setupIntentClientSecret,_that.intentConfiguration,_that.merchantDisplayName,_that.applePay,_that.style,_that.googlePay,_that.linkDisplayParams,_that.allowsDelayedPaymentMethods,_that.appearance,_that.billingDetails,_that.allowsRemovalOfLastSavedPaymentMethod,_that.paymentMethodOrder,_that.returnURL,_that.billingDetailsCollectionConfiguration,_that.removeSavedPaymentMethodMessage,_that.preferredNetworks,_that.cardBrandAcceptance,_that.customPaymentMethodConfiguration);case _:
+return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that.customerEphemeralKeySecret,_that.customerSessionClientSecret,_that.paymentIntentClientSecret,_that.setupIntentClientSecret,_that.intentConfiguration,_that.merchantDisplayName,_that.applePay,_that.style,_that.googlePay,_that.linkDisplayParams,_that.allowsDelayedPaymentMethods,_that.appearance,_that.billingDetails,_that.allowsRemovalOfLastSavedPaymentMethod,_that.paymentMethodOrder,_that.returnURL,_that.billingDetailsCollectionConfiguration,_that.removeSavedPaymentMethodMessage,_that.preferredNetworks,_that.cardBrandAcceptance,_that.cardFundingFiltering,_that.customPaymentMethodConfiguration,_that.opensCardScannerAutomatically,_that.termsDisplay);case _:
   return orElse();
 
 }
@@ -371,10 +400,10 @@ return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool customFlow,  String? customerId,  String? primaryButtonLabel,  String? customerEphemeralKeySecret,  String? customerSessionClientSecret,  String? paymentIntentClientSecret,  String? setupIntentClientSecret,  IntentConfiguration? intentConfiguration,  String? merchantDisplayName,  PaymentSheetApplePay? applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson)  ThemeMode? style,  PaymentSheetGooglePay? googlePay,  LinkDisplayParams? linkDisplayParams,  bool allowsDelayedPaymentMethods,  PaymentSheetAppearance? appearance, @JsonKey(name: 'defaultBillingDetails')  BillingDetails? billingDetails,  bool? allowsRemovalOfLastSavedPaymentMethod,  List<String>? paymentMethodOrder,  String? returnURL,  BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration,  String? removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson)  List<CardBrand>? preferredNetworks,  CardBrandAcceptance? cardBrandAcceptance,  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool customFlow,  String? customerId,  String? primaryButtonLabel,  String? customerEphemeralKeySecret,  String? customerSessionClientSecret,  String? paymentIntentClientSecret,  String? setupIntentClientSecret,  IntentConfiguration? intentConfiguration,  String? merchantDisplayName,  PaymentSheetApplePay? applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson)  ThemeMode? style,  PaymentSheetGooglePay? googlePay, @JsonKey(name: 'link')  LinkDisplayParams? linkDisplayParams,  bool allowsDelayedPaymentMethods,  PaymentSheetAppearance? appearance, @JsonKey(name: 'defaultBillingDetails')  BillingDetails? billingDetails,  bool? allowsRemovalOfLastSavedPaymentMethod,  List<String>? paymentMethodOrder,  String? returnURL,  BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration,  String? removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson)  List<CardBrand>? preferredNetworks,  CardBrandAcceptance? cardBrandAcceptance,  CardFundingFiltering? cardFundingFiltering,  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration,  bool? opensCardScannerAutomatically, @JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson)  Map<String, TermsDisplay>? termsDisplay)  $default,) {final _that = this;
 switch (_that) {
 case _SetupParameters():
-return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that.customerEphemeralKeySecret,_that.customerSessionClientSecret,_that.paymentIntentClientSecret,_that.setupIntentClientSecret,_that.intentConfiguration,_that.merchantDisplayName,_that.applePay,_that.style,_that.googlePay,_that.linkDisplayParams,_that.allowsDelayedPaymentMethods,_that.appearance,_that.billingDetails,_that.allowsRemovalOfLastSavedPaymentMethod,_that.paymentMethodOrder,_that.returnURL,_that.billingDetailsCollectionConfiguration,_that.removeSavedPaymentMethodMessage,_that.preferredNetworks,_that.cardBrandAcceptance,_that.customPaymentMethodConfiguration);case _:
+return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that.customerEphemeralKeySecret,_that.customerSessionClientSecret,_that.paymentIntentClientSecret,_that.setupIntentClientSecret,_that.intentConfiguration,_that.merchantDisplayName,_that.applePay,_that.style,_that.googlePay,_that.linkDisplayParams,_that.allowsDelayedPaymentMethods,_that.appearance,_that.billingDetails,_that.allowsRemovalOfLastSavedPaymentMethod,_that.paymentMethodOrder,_that.returnURL,_that.billingDetailsCollectionConfiguration,_that.removeSavedPaymentMethodMessage,_that.preferredNetworks,_that.cardBrandAcceptance,_that.cardFundingFiltering,_that.customPaymentMethodConfiguration,_that.opensCardScannerAutomatically,_that.termsDisplay);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -391,10 +420,10 @@ return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool customFlow,  String? customerId,  String? primaryButtonLabel,  String? customerEphemeralKeySecret,  String? customerSessionClientSecret,  String? paymentIntentClientSecret,  String? setupIntentClientSecret,  IntentConfiguration? intentConfiguration,  String? merchantDisplayName,  PaymentSheetApplePay? applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson)  ThemeMode? style,  PaymentSheetGooglePay? googlePay,  LinkDisplayParams? linkDisplayParams,  bool allowsDelayedPaymentMethods,  PaymentSheetAppearance? appearance, @JsonKey(name: 'defaultBillingDetails')  BillingDetails? billingDetails,  bool? allowsRemovalOfLastSavedPaymentMethod,  List<String>? paymentMethodOrder,  String? returnURL,  BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration,  String? removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson)  List<CardBrand>? preferredNetworks,  CardBrandAcceptance? cardBrandAcceptance,  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool customFlow,  String? customerId,  String? primaryButtonLabel,  String? customerEphemeralKeySecret,  String? customerSessionClientSecret,  String? paymentIntentClientSecret,  String? setupIntentClientSecret,  IntentConfiguration? intentConfiguration,  String? merchantDisplayName,  PaymentSheetApplePay? applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson)  ThemeMode? style,  PaymentSheetGooglePay? googlePay, @JsonKey(name: 'link')  LinkDisplayParams? linkDisplayParams,  bool allowsDelayedPaymentMethods,  PaymentSheetAppearance? appearance, @JsonKey(name: 'defaultBillingDetails')  BillingDetails? billingDetails,  bool? allowsRemovalOfLastSavedPaymentMethod,  List<String>? paymentMethodOrder,  String? returnURL,  BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration,  String? removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson)  List<CardBrand>? preferredNetworks,  CardBrandAcceptance? cardBrandAcceptance,  CardFundingFiltering? cardFundingFiltering,  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration,  bool? opensCardScannerAutomatically, @JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson)  Map<String, TermsDisplay>? termsDisplay)?  $default,) {final _that = this;
 switch (_that) {
 case _SetupParameters() when $default != null:
-return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that.customerEphemeralKeySecret,_that.customerSessionClientSecret,_that.paymentIntentClientSecret,_that.setupIntentClientSecret,_that.intentConfiguration,_that.merchantDisplayName,_that.applePay,_that.style,_that.googlePay,_that.linkDisplayParams,_that.allowsDelayedPaymentMethods,_that.appearance,_that.billingDetails,_that.allowsRemovalOfLastSavedPaymentMethod,_that.paymentMethodOrder,_that.returnURL,_that.billingDetailsCollectionConfiguration,_that.removeSavedPaymentMethodMessage,_that.preferredNetworks,_that.cardBrandAcceptance,_that.customPaymentMethodConfiguration);case _:
+return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that.customerEphemeralKeySecret,_that.customerSessionClientSecret,_that.paymentIntentClientSecret,_that.setupIntentClientSecret,_that.intentConfiguration,_that.merchantDisplayName,_that.applePay,_that.style,_that.googlePay,_that.linkDisplayParams,_that.allowsDelayedPaymentMethods,_that.appearance,_that.billingDetails,_that.allowsRemovalOfLastSavedPaymentMethod,_that.paymentMethodOrder,_that.returnURL,_that.billingDetailsCollectionConfiguration,_that.removeSavedPaymentMethodMessage,_that.preferredNetworks,_that.cardBrandAcceptance,_that.cardFundingFiltering,_that.customPaymentMethodConfiguration,_that.opensCardScannerAutomatically,_that.termsDisplay);case _:
   return null;
 
 }
@@ -406,7 +435,7 @@ return $default(_that.customFlow,_that.customerId,_that.primaryButtonLabel,_that
 
 @JsonSerializable(explicitToJson: true)
 class _SetupParameters implements SetupPaymentSheetParameters {
-  const _SetupParameters({this.customFlow = false, this.customerId, this.primaryButtonLabel, this.customerEphemeralKeySecret, this.customerSessionClientSecret, this.paymentIntentClientSecret, this.setupIntentClientSecret, this.intentConfiguration, this.merchantDisplayName, this.applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson) this.style, this.googlePay, this.linkDisplayParams, this.allowsDelayedPaymentMethods = false, this.appearance, @JsonKey(name: 'defaultBillingDetails') this.billingDetails, this.allowsRemovalOfLastSavedPaymentMethod, final  List<String>? paymentMethodOrder, this.returnURL, this.billingDetailsCollectionConfiguration, this.removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson) final  List<CardBrand>? preferredNetworks, this.cardBrandAcceptance, this.customPaymentMethodConfiguration}): _paymentMethodOrder = paymentMethodOrder,_preferredNetworks = preferredNetworks;
+  const _SetupParameters({this.customFlow = false, this.customerId, this.primaryButtonLabel, this.customerEphemeralKeySecret, this.customerSessionClientSecret, this.paymentIntentClientSecret, this.setupIntentClientSecret, this.intentConfiguration, this.merchantDisplayName, this.applePay, @JsonKey(toJson: UserInterfaceStyleKey.toJson) this.style, this.googlePay, @JsonKey(name: 'link') this.linkDisplayParams, this.allowsDelayedPaymentMethods = false, this.appearance, @JsonKey(name: 'defaultBillingDetails') this.billingDetails, this.allowsRemovalOfLastSavedPaymentMethod, final  List<String>? paymentMethodOrder, this.returnURL, this.billingDetailsCollectionConfiguration, this.removeSavedPaymentMethodMessage, @JsonKey(toJson: _cardBrandListToJson) final  List<CardBrand>? preferredNetworks, this.cardBrandAcceptance, this.cardFundingFiltering, this.customPaymentMethodConfiguration, this.opensCardScannerAutomatically, @JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson) final  Map<String, TermsDisplay>? termsDisplay}): _paymentMethodOrder = paymentMethodOrder,_preferredNetworks = preferredNetworks,_termsDisplay = termsDisplay;
   factory _SetupParameters.fromJson(Map<String, dynamic> json) => _$SetupParametersFromJson(json);
 
 /// Whether or not to use a custom flow.
@@ -449,7 +478,7 @@ class _SetupParameters implements SetupPaymentSheetParameters {
 /// If set, PaymentSheet displays Google Pay as a payment option
 @override final  PaymentSheetGooglePay? googlePay;
 /// Configuration related to Link
-@override final  LinkDisplayParams? linkDisplayParams;
+@override@JsonKey(name: 'link') final  LinkDisplayParams? linkDisplayParams;
 /// Flag that allows payment methods that do not move money at the send of the checkout.
 ///
 /// Defaul value is false.
@@ -513,8 +542,39 @@ class _SetupParameters implements SetupPaymentSheetParameters {
 /// Note: This is only a client-side solution.
 ///Note: Card brand filtering is not currently supported in Link.
 @override final  CardBrandAcceptance? cardBrandAcceptance;
+///
+///Configuration for filtering cards by funding type.
+/// @note This is a private preview API and will have no effect unless your Stripe account is enrolled in the private preview.
+///
+@override final  CardFundingFiltering? cardFundingFiltering;
 /// Configuration for custom payment methods in PaymentSheet
 @override final  CustomPaymentMethodConfiguration? customPaymentMethodConfiguration;
+///By default, PaymentSheet offers a card scan button within the new card entry form.
+/// When opensCardScannerAutomatically is set to true,
+/// the card entry form will initialize with the card scanner already open.
+/// Defaults to false.
+@override final  bool? opensCardScannerAutomatically;
+/// A map of payment method types to their terms display configuration.
+/// Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
+/// Keys are snake_case payment method type strings (e.g. "card", "us_bank_account").
+/// See https://docs.stripe.com/api/payment_methods/object#payment_method_object-type for the full list of values.
+/// Values are `TermsDisplay.automatic` or `TermsDisplay.never`.
+/// If not set, defaults to `TermsDisplay.automatic` for all payment method types.
+ final  Map<String, TermsDisplay>? _termsDisplay;
+/// A map of payment method types to their terms display configuration.
+/// Controls whether legal agreements (e.g. card mandate disclaimers) are shown for each payment method type.
+/// Keys are snake_case payment method type strings (e.g. "card", "us_bank_account").
+/// See https://docs.stripe.com/api/payment_methods/object#payment_method_object-type for the full list of values.
+/// Values are `TermsDisplay.automatic` or `TermsDisplay.never`.
+/// If not set, defaults to `TermsDisplay.automatic` for all payment method types.
+@override@JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson) Map<String, TermsDisplay>? get termsDisplay {
+  final value = _termsDisplay;
+  if (value == null) return null;
+  if (_termsDisplay is EqualUnmodifiableMapView) return _termsDisplay;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 
 /// Create a copy of SetupPaymentSheetParameters
 /// with the given fields replaced by the non-null parameter values.
@@ -529,16 +589,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SetupParameters&&(identical(other.customFlow, customFlow) || other.customFlow == customFlow)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.primaryButtonLabel, primaryButtonLabel) || other.primaryButtonLabel == primaryButtonLabel)&&(identical(other.customerEphemeralKeySecret, customerEphemeralKeySecret) || other.customerEphemeralKeySecret == customerEphemeralKeySecret)&&(identical(other.customerSessionClientSecret, customerSessionClientSecret) || other.customerSessionClientSecret == customerSessionClientSecret)&&(identical(other.paymentIntentClientSecret, paymentIntentClientSecret) || other.paymentIntentClientSecret == paymentIntentClientSecret)&&(identical(other.setupIntentClientSecret, setupIntentClientSecret) || other.setupIntentClientSecret == setupIntentClientSecret)&&(identical(other.intentConfiguration, intentConfiguration) || other.intentConfiguration == intentConfiguration)&&(identical(other.merchantDisplayName, merchantDisplayName) || other.merchantDisplayName == merchantDisplayName)&&(identical(other.applePay, applePay) || other.applePay == applePay)&&(identical(other.style, style) || other.style == style)&&(identical(other.googlePay, googlePay) || other.googlePay == googlePay)&&(identical(other.linkDisplayParams, linkDisplayParams) || other.linkDisplayParams == linkDisplayParams)&&(identical(other.allowsDelayedPaymentMethods, allowsDelayedPaymentMethods) || other.allowsDelayedPaymentMethods == allowsDelayedPaymentMethods)&&(identical(other.appearance, appearance) || other.appearance == appearance)&&(identical(other.billingDetails, billingDetails) || other.billingDetails == billingDetails)&&(identical(other.allowsRemovalOfLastSavedPaymentMethod, allowsRemovalOfLastSavedPaymentMethod) || other.allowsRemovalOfLastSavedPaymentMethod == allowsRemovalOfLastSavedPaymentMethod)&&const DeepCollectionEquality().equals(other._paymentMethodOrder, _paymentMethodOrder)&&(identical(other.returnURL, returnURL) || other.returnURL == returnURL)&&(identical(other.billingDetailsCollectionConfiguration, billingDetailsCollectionConfiguration) || other.billingDetailsCollectionConfiguration == billingDetailsCollectionConfiguration)&&(identical(other.removeSavedPaymentMethodMessage, removeSavedPaymentMethodMessage) || other.removeSavedPaymentMethodMessage == removeSavedPaymentMethodMessage)&&const DeepCollectionEquality().equals(other._preferredNetworks, _preferredNetworks)&&(identical(other.cardBrandAcceptance, cardBrandAcceptance) || other.cardBrandAcceptance == cardBrandAcceptance)&&(identical(other.customPaymentMethodConfiguration, customPaymentMethodConfiguration) || other.customPaymentMethodConfiguration == customPaymentMethodConfiguration));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SetupParameters&&(identical(other.customFlow, customFlow) || other.customFlow == customFlow)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.primaryButtonLabel, primaryButtonLabel) || other.primaryButtonLabel == primaryButtonLabel)&&(identical(other.customerEphemeralKeySecret, customerEphemeralKeySecret) || other.customerEphemeralKeySecret == customerEphemeralKeySecret)&&(identical(other.customerSessionClientSecret, customerSessionClientSecret) || other.customerSessionClientSecret == customerSessionClientSecret)&&(identical(other.paymentIntentClientSecret, paymentIntentClientSecret) || other.paymentIntentClientSecret == paymentIntentClientSecret)&&(identical(other.setupIntentClientSecret, setupIntentClientSecret) || other.setupIntentClientSecret == setupIntentClientSecret)&&(identical(other.intentConfiguration, intentConfiguration) || other.intentConfiguration == intentConfiguration)&&(identical(other.merchantDisplayName, merchantDisplayName) || other.merchantDisplayName == merchantDisplayName)&&(identical(other.applePay, applePay) || other.applePay == applePay)&&(identical(other.style, style) || other.style == style)&&(identical(other.googlePay, googlePay) || other.googlePay == googlePay)&&(identical(other.linkDisplayParams, linkDisplayParams) || other.linkDisplayParams == linkDisplayParams)&&(identical(other.allowsDelayedPaymentMethods, allowsDelayedPaymentMethods) || other.allowsDelayedPaymentMethods == allowsDelayedPaymentMethods)&&(identical(other.appearance, appearance) || other.appearance == appearance)&&(identical(other.billingDetails, billingDetails) || other.billingDetails == billingDetails)&&(identical(other.allowsRemovalOfLastSavedPaymentMethod, allowsRemovalOfLastSavedPaymentMethod) || other.allowsRemovalOfLastSavedPaymentMethod == allowsRemovalOfLastSavedPaymentMethod)&&const DeepCollectionEquality().equals(other._paymentMethodOrder, _paymentMethodOrder)&&(identical(other.returnURL, returnURL) || other.returnURL == returnURL)&&(identical(other.billingDetailsCollectionConfiguration, billingDetailsCollectionConfiguration) || other.billingDetailsCollectionConfiguration == billingDetailsCollectionConfiguration)&&(identical(other.removeSavedPaymentMethodMessage, removeSavedPaymentMethodMessage) || other.removeSavedPaymentMethodMessage == removeSavedPaymentMethodMessage)&&const DeepCollectionEquality().equals(other._preferredNetworks, _preferredNetworks)&&(identical(other.cardBrandAcceptance, cardBrandAcceptance) || other.cardBrandAcceptance == cardBrandAcceptance)&&(identical(other.cardFundingFiltering, cardFundingFiltering) || other.cardFundingFiltering == cardFundingFiltering)&&(identical(other.customPaymentMethodConfiguration, customPaymentMethodConfiguration) || other.customPaymentMethodConfiguration == customPaymentMethodConfiguration)&&(identical(other.opensCardScannerAutomatically, opensCardScannerAutomatically) || other.opensCardScannerAutomatically == opensCardScannerAutomatically)&&const DeepCollectionEquality().equals(other._termsDisplay, _termsDisplay));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,customFlow,customerId,primaryButtonLabel,customerEphemeralKeySecret,customerSessionClientSecret,paymentIntentClientSecret,setupIntentClientSecret,intentConfiguration,merchantDisplayName,applePay,style,googlePay,linkDisplayParams,allowsDelayedPaymentMethods,appearance,billingDetails,allowsRemovalOfLastSavedPaymentMethod,const DeepCollectionEquality().hash(_paymentMethodOrder),returnURL,billingDetailsCollectionConfiguration,removeSavedPaymentMethodMessage,const DeepCollectionEquality().hash(_preferredNetworks),cardBrandAcceptance,customPaymentMethodConfiguration]);
+int get hashCode => Object.hashAll([runtimeType,customFlow,customerId,primaryButtonLabel,customerEphemeralKeySecret,customerSessionClientSecret,paymentIntentClientSecret,setupIntentClientSecret,intentConfiguration,merchantDisplayName,applePay,style,googlePay,linkDisplayParams,allowsDelayedPaymentMethods,appearance,billingDetails,allowsRemovalOfLastSavedPaymentMethod,const DeepCollectionEquality().hash(_paymentMethodOrder),returnURL,billingDetailsCollectionConfiguration,removeSavedPaymentMethodMessage,const DeepCollectionEquality().hash(_preferredNetworks),cardBrandAcceptance,cardFundingFiltering,customPaymentMethodConfiguration,opensCardScannerAutomatically,const DeepCollectionEquality().hash(_termsDisplay)]);
 
 @override
 String toString() {
-  return 'SetupPaymentSheetParameters(customFlow: $customFlow, customerId: $customerId, primaryButtonLabel: $primaryButtonLabel, customerEphemeralKeySecret: $customerEphemeralKeySecret, customerSessionClientSecret: $customerSessionClientSecret, paymentIntentClientSecret: $paymentIntentClientSecret, setupIntentClientSecret: $setupIntentClientSecret, intentConfiguration: $intentConfiguration, merchantDisplayName: $merchantDisplayName, applePay: $applePay, style: $style, googlePay: $googlePay, linkDisplayParams: $linkDisplayParams, allowsDelayedPaymentMethods: $allowsDelayedPaymentMethods, appearance: $appearance, billingDetails: $billingDetails, allowsRemovalOfLastSavedPaymentMethod: $allowsRemovalOfLastSavedPaymentMethod, paymentMethodOrder: $paymentMethodOrder, returnURL: $returnURL, billingDetailsCollectionConfiguration: $billingDetailsCollectionConfiguration, removeSavedPaymentMethodMessage: $removeSavedPaymentMethodMessage, preferredNetworks: $preferredNetworks, cardBrandAcceptance: $cardBrandAcceptance, customPaymentMethodConfiguration: $customPaymentMethodConfiguration)';
+  return 'SetupPaymentSheetParameters(customFlow: $customFlow, customerId: $customerId, primaryButtonLabel: $primaryButtonLabel, customerEphemeralKeySecret: $customerEphemeralKeySecret, customerSessionClientSecret: $customerSessionClientSecret, paymentIntentClientSecret: $paymentIntentClientSecret, setupIntentClientSecret: $setupIntentClientSecret, intentConfiguration: $intentConfiguration, merchantDisplayName: $merchantDisplayName, applePay: $applePay, style: $style, googlePay: $googlePay, linkDisplayParams: $linkDisplayParams, allowsDelayedPaymentMethods: $allowsDelayedPaymentMethods, appearance: $appearance, billingDetails: $billingDetails, allowsRemovalOfLastSavedPaymentMethod: $allowsRemovalOfLastSavedPaymentMethod, paymentMethodOrder: $paymentMethodOrder, returnURL: $returnURL, billingDetailsCollectionConfiguration: $billingDetailsCollectionConfiguration, removeSavedPaymentMethodMessage: $removeSavedPaymentMethodMessage, preferredNetworks: $preferredNetworks, cardBrandAcceptance: $cardBrandAcceptance, cardFundingFiltering: $cardFundingFiltering, customPaymentMethodConfiguration: $customPaymentMethodConfiguration, opensCardScannerAutomatically: $opensCardScannerAutomatically, termsDisplay: $termsDisplay)';
 }
 
 
@@ -549,11 +609,11 @@ abstract mixin class _$SetupParametersCopyWith<$Res> implements $SetupPaymentShe
   factory _$SetupParametersCopyWith(_SetupParameters value, $Res Function(_SetupParameters) _then) = __$SetupParametersCopyWithImpl;
 @override @useResult
 $Res call({
- bool customFlow, String? customerId, String? primaryButtonLabel, String? customerEphemeralKeySecret, String? customerSessionClientSecret, String? paymentIntentClientSecret, String? setupIntentClientSecret, IntentConfiguration? intentConfiguration, String? merchantDisplayName, PaymentSheetApplePay? applePay,@JsonKey(toJson: UserInterfaceStyleKey.toJson) ThemeMode? style, PaymentSheetGooglePay? googlePay, LinkDisplayParams? linkDisplayParams, bool allowsDelayedPaymentMethods, PaymentSheetAppearance? appearance,@JsonKey(name: 'defaultBillingDetails') BillingDetails? billingDetails, bool? allowsRemovalOfLastSavedPaymentMethod, List<String>? paymentMethodOrder, String? returnURL, BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration, String? removeSavedPaymentMethodMessage,@JsonKey(toJson: _cardBrandListToJson) List<CardBrand>? preferredNetworks, CardBrandAcceptance? cardBrandAcceptance, CustomPaymentMethodConfiguration? customPaymentMethodConfiguration
+ bool customFlow, String? customerId, String? primaryButtonLabel, String? customerEphemeralKeySecret, String? customerSessionClientSecret, String? paymentIntentClientSecret, String? setupIntentClientSecret, IntentConfiguration? intentConfiguration, String? merchantDisplayName, PaymentSheetApplePay? applePay,@JsonKey(toJson: UserInterfaceStyleKey.toJson) ThemeMode? style, PaymentSheetGooglePay? googlePay,@JsonKey(name: 'link') LinkDisplayParams? linkDisplayParams, bool allowsDelayedPaymentMethods, PaymentSheetAppearance? appearance,@JsonKey(name: 'defaultBillingDetails') BillingDetails? billingDetails, bool? allowsRemovalOfLastSavedPaymentMethod, List<String>? paymentMethodOrder, String? returnURL, BillingDetailsCollectionConfiguration? billingDetailsCollectionConfiguration, String? removeSavedPaymentMethodMessage,@JsonKey(toJson: _cardBrandListToJson) List<CardBrand>? preferredNetworks, CardBrandAcceptance? cardBrandAcceptance, CardFundingFiltering? cardFundingFiltering, CustomPaymentMethodConfiguration? customPaymentMethodConfiguration, bool? opensCardScannerAutomatically,@JsonKey(toJson: _termsDisplayToJson, fromJson: _termsDisplayFromJson) Map<String, TermsDisplay>? termsDisplay
 });
 
 
-@override $IntentConfigurationCopyWith<$Res>? get intentConfiguration;@override $PaymentSheetApplePayCopyWith<$Res>? get applePay;@override $PaymentSheetGooglePayCopyWith<$Res>? get googlePay;@override $LinkDisplayParamsCopyWith<$Res>? get linkDisplayParams;@override $PaymentSheetAppearanceCopyWith<$Res>? get appearance;@override $BillingDetailsCopyWith<$Res>? get billingDetails;@override $BillingDetailsCollectionConfigurationCopyWith<$Res>? get billingDetailsCollectionConfiguration;@override $CardBrandAcceptanceCopyWith<$Res>? get cardBrandAcceptance;@override $CustomPaymentMethodConfigurationCopyWith<$Res>? get customPaymentMethodConfiguration;
+@override $IntentConfigurationCopyWith<$Res>? get intentConfiguration;@override $PaymentSheetApplePayCopyWith<$Res>? get applePay;@override $PaymentSheetGooglePayCopyWith<$Res>? get googlePay;@override $LinkDisplayParamsCopyWith<$Res>? get linkDisplayParams;@override $PaymentSheetAppearanceCopyWith<$Res>? get appearance;@override $BillingDetailsCopyWith<$Res>? get billingDetails;@override $BillingDetailsCollectionConfigurationCopyWith<$Res>? get billingDetailsCollectionConfiguration;@override $CardBrandAcceptanceCopyWith<$Res>? get cardBrandAcceptance;@override $CardFundingFilteringCopyWith<$Res>? get cardFundingFiltering;@override $CustomPaymentMethodConfigurationCopyWith<$Res>? get customPaymentMethodConfiguration;
 
 }
 /// @nodoc
@@ -566,7 +626,7 @@ class __$SetupParametersCopyWithImpl<$Res>
 
 /// Create a copy of SetupPaymentSheetParameters
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? customFlow = null,Object? customerId = freezed,Object? primaryButtonLabel = freezed,Object? customerEphemeralKeySecret = freezed,Object? customerSessionClientSecret = freezed,Object? paymentIntentClientSecret = freezed,Object? setupIntentClientSecret = freezed,Object? intentConfiguration = freezed,Object? merchantDisplayName = freezed,Object? applePay = freezed,Object? style = freezed,Object? googlePay = freezed,Object? linkDisplayParams = freezed,Object? allowsDelayedPaymentMethods = null,Object? appearance = freezed,Object? billingDetails = freezed,Object? allowsRemovalOfLastSavedPaymentMethod = freezed,Object? paymentMethodOrder = freezed,Object? returnURL = freezed,Object? billingDetailsCollectionConfiguration = freezed,Object? removeSavedPaymentMethodMessage = freezed,Object? preferredNetworks = freezed,Object? cardBrandAcceptance = freezed,Object? customPaymentMethodConfiguration = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? customFlow = null,Object? customerId = freezed,Object? primaryButtonLabel = freezed,Object? customerEphemeralKeySecret = freezed,Object? customerSessionClientSecret = freezed,Object? paymentIntentClientSecret = freezed,Object? setupIntentClientSecret = freezed,Object? intentConfiguration = freezed,Object? merchantDisplayName = freezed,Object? applePay = freezed,Object? style = freezed,Object? googlePay = freezed,Object? linkDisplayParams = freezed,Object? allowsDelayedPaymentMethods = null,Object? appearance = freezed,Object? billingDetails = freezed,Object? allowsRemovalOfLastSavedPaymentMethod = freezed,Object? paymentMethodOrder = freezed,Object? returnURL = freezed,Object? billingDetailsCollectionConfiguration = freezed,Object? removeSavedPaymentMethodMessage = freezed,Object? preferredNetworks = freezed,Object? cardBrandAcceptance = freezed,Object? cardFundingFiltering = freezed,Object? customPaymentMethodConfiguration = freezed,Object? opensCardScannerAutomatically = freezed,Object? termsDisplay = freezed,}) {
   return _then(_SetupParameters(
 customFlow: null == customFlow ? _self.customFlow : customFlow // ignore: cast_nullable_to_non_nullable
 as bool,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
@@ -591,8 +651,11 @@ as String?,billingDetailsCollectionConfiguration: freezed == billingDetailsColle
 as BillingDetailsCollectionConfiguration?,removeSavedPaymentMethodMessage: freezed == removeSavedPaymentMethodMessage ? _self.removeSavedPaymentMethodMessage : removeSavedPaymentMethodMessage // ignore: cast_nullable_to_non_nullable
 as String?,preferredNetworks: freezed == preferredNetworks ? _self._preferredNetworks : preferredNetworks // ignore: cast_nullable_to_non_nullable
 as List<CardBrand>?,cardBrandAcceptance: freezed == cardBrandAcceptance ? _self.cardBrandAcceptance : cardBrandAcceptance // ignore: cast_nullable_to_non_nullable
-as CardBrandAcceptance?,customPaymentMethodConfiguration: freezed == customPaymentMethodConfiguration ? _self.customPaymentMethodConfiguration : customPaymentMethodConfiguration // ignore: cast_nullable_to_non_nullable
-as CustomPaymentMethodConfiguration?,
+as CardBrandAcceptance?,cardFundingFiltering: freezed == cardFundingFiltering ? _self.cardFundingFiltering : cardFundingFiltering // ignore: cast_nullable_to_non_nullable
+as CardFundingFiltering?,customPaymentMethodConfiguration: freezed == customPaymentMethodConfiguration ? _self.customPaymentMethodConfiguration : customPaymentMethodConfiguration // ignore: cast_nullable_to_non_nullable
+as CustomPaymentMethodConfiguration?,opensCardScannerAutomatically: freezed == opensCardScannerAutomatically ? _self.opensCardScannerAutomatically : opensCardScannerAutomatically // ignore: cast_nullable_to_non_nullable
+as bool?,termsDisplay: freezed == termsDisplay ? _self._termsDisplay : termsDisplay // ignore: cast_nullable_to_non_nullable
+as Map<String, TermsDisplay>?,
   ));
 }
 
@@ -696,6 +759,18 @@ $CardBrandAcceptanceCopyWith<$Res>? get cardBrandAcceptance {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
+$CardFundingFilteringCopyWith<$Res>? get cardFundingFiltering {
+    if (_self.cardFundingFiltering == null) {
+    return null;
+  }
+
+  return $CardFundingFilteringCopyWith<$Res>(_self.cardFundingFiltering!, (value) {
+    return _then(_self.copyWith(cardFundingFiltering: value));
+  });
+}/// Create a copy of SetupPaymentSheetParameters
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
 $CustomPaymentMethodConfigurationCopyWith<$Res>? get customPaymentMethodConfiguration {
     if (_self.customPaymentMethodConfiguration == null) {
     return null;
@@ -715,9 +790,11 @@ mixin _$IntentConfiguration {
  IntentMode get mode;/// The list of payment method types that the customer can use in the payment sheet.
 ///
 /// If not set, the payment sheet will display all the payment methods enabled in your Stripe dashboard.
- List<String>? get paymentMethodTypes;/// Called when the customer confirms payment. Your implementation should create
+ List<String>? get paymentMethodTypes;/// Configuration ID for the selected payment method configuration.
+/// See https://stripe.com/docs/payments/multiple-payment-method-configs
+ String? get paymentMethodConfigurationId;/// Called when the customer confirms payment. Your implementation should create
 /// a payment intent or setupintent on your server and call the intent creation callback with its client secret or an error if one occurred.
-@JsonKey(includeFromJson: false, includeToJson: false) ConfirmHandler? get confirmHandler;/// Called when the customer confirms token payment. 
+@JsonKey(includeFromJson: false, includeToJson: false) ConfirmHandler? get confirmHandler;/// Called when the customer confirms token payment.
 @JsonKey(includeFromJson: false, includeToJson: false) ConfirmTokenHandler? get confirmTokenHandler;
 /// Create a copy of IntentConfiguration
 /// with the given fields replaced by the non-null parameter values.
@@ -731,16 +808,16 @@ $IntentConfigurationCopyWith<IntentConfiguration> get copyWith => _$IntentConfig
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IntentConfiguration&&(identical(other.mode, mode) || other.mode == mode)&&const DeepCollectionEquality().equals(other.paymentMethodTypes, paymentMethodTypes)&&(identical(other.confirmHandler, confirmHandler) || other.confirmHandler == confirmHandler)&&(identical(other.confirmTokenHandler, confirmTokenHandler) || other.confirmTokenHandler == confirmTokenHandler));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IntentConfiguration&&(identical(other.mode, mode) || other.mode == mode)&&const DeepCollectionEquality().equals(other.paymentMethodTypes, paymentMethodTypes)&&(identical(other.paymentMethodConfigurationId, paymentMethodConfigurationId) || other.paymentMethodConfigurationId == paymentMethodConfigurationId)&&(identical(other.confirmHandler, confirmHandler) || other.confirmHandler == confirmHandler)&&(identical(other.confirmTokenHandler, confirmTokenHandler) || other.confirmTokenHandler == confirmTokenHandler));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mode,const DeepCollectionEquality().hash(paymentMethodTypes),confirmHandler,confirmTokenHandler);
+int get hashCode => Object.hash(runtimeType,mode,const DeepCollectionEquality().hash(paymentMethodTypes),paymentMethodConfigurationId,confirmHandler,confirmTokenHandler);
 
 @override
 String toString() {
-  return 'IntentConfiguration(mode: $mode, paymentMethodTypes: $paymentMethodTypes, confirmHandler: $confirmHandler, confirmTokenHandler: $confirmTokenHandler)';
+  return 'IntentConfiguration(mode: $mode, paymentMethodTypes: $paymentMethodTypes, paymentMethodConfigurationId: $paymentMethodConfigurationId, confirmHandler: $confirmHandler, confirmTokenHandler: $confirmTokenHandler)';
 }
 
 
@@ -751,7 +828,7 @@ abstract mixin class $IntentConfigurationCopyWith<$Res>  {
   factory $IntentConfigurationCopyWith(IntentConfiguration value, $Res Function(IntentConfiguration) _then) = _$IntentConfigurationCopyWithImpl;
 @useResult
 $Res call({
- IntentMode mode, List<String>? paymentMethodTypes,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmHandler? confirmHandler,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmTokenHandler? confirmTokenHandler
+ IntentMode mode, List<String>? paymentMethodTypes, String? paymentMethodConfigurationId,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmHandler? confirmHandler,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmTokenHandler? confirmTokenHandler
 });
 
 
@@ -768,11 +845,12 @@ class _$IntentConfigurationCopyWithImpl<$Res>
 
 /// Create a copy of IntentConfiguration
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? paymentMethodTypes = freezed,Object? confirmHandler = freezed,Object? confirmTokenHandler = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? mode = null,Object? paymentMethodTypes = freezed,Object? paymentMethodConfigurationId = freezed,Object? confirmHandler = freezed,Object? confirmTokenHandler = freezed,}) {
   return _then(_self.copyWith(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as IntentMode,paymentMethodTypes: freezed == paymentMethodTypes ? _self.paymentMethodTypes : paymentMethodTypes // ignore: cast_nullable_to_non_nullable
-as List<String>?,confirmHandler: freezed == confirmHandler ? _self.confirmHandler : confirmHandler // ignore: cast_nullable_to_non_nullable
+as List<String>?,paymentMethodConfigurationId: freezed == paymentMethodConfigurationId ? _self.paymentMethodConfigurationId : paymentMethodConfigurationId // ignore: cast_nullable_to_non_nullable
+as String?,confirmHandler: freezed == confirmHandler ? _self.confirmHandler : confirmHandler // ignore: cast_nullable_to_non_nullable
 as ConfirmHandler?,confirmTokenHandler: freezed == confirmTokenHandler ? _self.confirmTokenHandler : confirmTokenHandler // ignore: cast_nullable_to_non_nullable
 as ConfirmTokenHandler?,
   ));
@@ -868,10 +946,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IntentMode mode,  List<String>? paymentMethodTypes, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmHandler? confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmTokenHandler? confirmTokenHandler)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( IntentMode mode,  List<String>? paymentMethodTypes,  String? paymentMethodConfigurationId, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmHandler? confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmTokenHandler? confirmTokenHandler)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _IntentConfiguration() when $default != null:
-return $default(_that.mode,_that.paymentMethodTypes,_that.confirmHandler,_that.confirmTokenHandler);case _:
+return $default(_that.mode,_that.paymentMethodTypes,_that.paymentMethodConfigurationId,_that.confirmHandler,_that.confirmTokenHandler);case _:
   return orElse();
 
 }
@@ -889,10 +967,10 @@ return $default(_that.mode,_that.paymentMethodTypes,_that.confirmHandler,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IntentMode mode,  List<String>? paymentMethodTypes, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmHandler? confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmTokenHandler? confirmTokenHandler)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( IntentMode mode,  List<String>? paymentMethodTypes,  String? paymentMethodConfigurationId, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmHandler? confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmTokenHandler? confirmTokenHandler)  $default,) {final _that = this;
 switch (_that) {
 case _IntentConfiguration():
-return $default(_that.mode,_that.paymentMethodTypes,_that.confirmHandler,_that.confirmTokenHandler);case _:
+return $default(_that.mode,_that.paymentMethodTypes,_that.paymentMethodConfigurationId,_that.confirmHandler,_that.confirmTokenHandler);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -909,10 +987,10 @@ return $default(_that.mode,_that.paymentMethodTypes,_that.confirmHandler,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IntentMode mode,  List<String>? paymentMethodTypes, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmHandler? confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmTokenHandler? confirmTokenHandler)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( IntentMode mode,  List<String>? paymentMethodTypes,  String? paymentMethodConfigurationId, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmHandler? confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false)  ConfirmTokenHandler? confirmTokenHandler)?  $default,) {final _that = this;
 switch (_that) {
 case _IntentConfiguration() when $default != null:
-return $default(_that.mode,_that.paymentMethodTypes,_that.confirmHandler,_that.confirmTokenHandler);case _:
+return $default(_that.mode,_that.paymentMethodTypes,_that.paymentMethodConfigurationId,_that.confirmHandler,_that.confirmTokenHandler);case _:
   return null;
 
 }
@@ -924,7 +1002,7 @@ return $default(_that.mode,_that.paymentMethodTypes,_that.confirmHandler,_that.c
 
 @JsonSerializable(explicitToJson: true)
 class _IntentConfiguration implements IntentConfiguration {
-  const _IntentConfiguration({required this.mode, final  List<String>? paymentMethodTypes, @JsonKey(includeFromJson: false, includeToJson: false) this.confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false) this.confirmTokenHandler}): _paymentMethodTypes = paymentMethodTypes;
+  const _IntentConfiguration({required this.mode, final  List<String>? paymentMethodTypes, this.paymentMethodConfigurationId, @JsonKey(includeFromJson: false, includeToJson: false) this.confirmHandler, @JsonKey(includeFromJson: false, includeToJson: false) this.confirmTokenHandler}): _paymentMethodTypes = paymentMethodTypes;
   factory _IntentConfiguration.fromJson(Map<String, dynamic> json) => _$IntentConfigurationFromJson(json);
 
 /// Data related to the future payment intent
@@ -944,10 +1022,13 @@ class _IntentConfiguration implements IntentConfiguration {
   return EqualUnmodifiableListView(value);
 }
 
+/// Configuration ID for the selected payment method configuration.
+/// See https://stripe.com/docs/payments/multiple-payment-method-configs
+@override final  String? paymentMethodConfigurationId;
 /// Called when the customer confirms payment. Your implementation should create
 /// a payment intent or setupintent on your server and call the intent creation callback with its client secret or an error if one occurred.
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  ConfirmHandler? confirmHandler;
-/// Called when the customer confirms token payment. 
+/// Called when the customer confirms token payment.
 @override@JsonKey(includeFromJson: false, includeToJson: false) final  ConfirmTokenHandler? confirmTokenHandler;
 
 /// Create a copy of IntentConfiguration
@@ -963,16 +1044,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IntentConfiguration&&(identical(other.mode, mode) || other.mode == mode)&&const DeepCollectionEquality().equals(other._paymentMethodTypes, _paymentMethodTypes)&&(identical(other.confirmHandler, confirmHandler) || other.confirmHandler == confirmHandler)&&(identical(other.confirmTokenHandler, confirmTokenHandler) || other.confirmTokenHandler == confirmTokenHandler));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IntentConfiguration&&(identical(other.mode, mode) || other.mode == mode)&&const DeepCollectionEquality().equals(other._paymentMethodTypes, _paymentMethodTypes)&&(identical(other.paymentMethodConfigurationId, paymentMethodConfigurationId) || other.paymentMethodConfigurationId == paymentMethodConfigurationId)&&(identical(other.confirmHandler, confirmHandler) || other.confirmHandler == confirmHandler)&&(identical(other.confirmTokenHandler, confirmTokenHandler) || other.confirmTokenHandler == confirmTokenHandler));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,mode,const DeepCollectionEquality().hash(_paymentMethodTypes),confirmHandler,confirmTokenHandler);
+int get hashCode => Object.hash(runtimeType,mode,const DeepCollectionEquality().hash(_paymentMethodTypes),paymentMethodConfigurationId,confirmHandler,confirmTokenHandler);
 
 @override
 String toString() {
-  return 'IntentConfiguration(mode: $mode, paymentMethodTypes: $paymentMethodTypes, confirmHandler: $confirmHandler, confirmTokenHandler: $confirmTokenHandler)';
+  return 'IntentConfiguration(mode: $mode, paymentMethodTypes: $paymentMethodTypes, paymentMethodConfigurationId: $paymentMethodConfigurationId, confirmHandler: $confirmHandler, confirmTokenHandler: $confirmTokenHandler)';
 }
 
 
@@ -983,7 +1064,7 @@ abstract mixin class _$IntentConfigurationCopyWith<$Res> implements $IntentConfi
   factory _$IntentConfigurationCopyWith(_IntentConfiguration value, $Res Function(_IntentConfiguration) _then) = __$IntentConfigurationCopyWithImpl;
 @override @useResult
 $Res call({
- IntentMode mode, List<String>? paymentMethodTypes,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmHandler? confirmHandler,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmTokenHandler? confirmTokenHandler
+ IntentMode mode, List<String>? paymentMethodTypes, String? paymentMethodConfigurationId,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmHandler? confirmHandler,@JsonKey(includeFromJson: false, includeToJson: false) ConfirmTokenHandler? confirmTokenHandler
 });
 
 
@@ -1000,11 +1081,12 @@ class __$IntentConfigurationCopyWithImpl<$Res>
 
 /// Create a copy of IntentConfiguration
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? paymentMethodTypes = freezed,Object? confirmHandler = freezed,Object? confirmTokenHandler = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? mode = null,Object? paymentMethodTypes = freezed,Object? paymentMethodConfigurationId = freezed,Object? confirmHandler = freezed,Object? confirmTokenHandler = freezed,}) {
   return _then(_IntentConfiguration(
 mode: null == mode ? _self.mode : mode // ignore: cast_nullable_to_non_nullable
 as IntentMode,paymentMethodTypes: freezed == paymentMethodTypes ? _self._paymentMethodTypes : paymentMethodTypes // ignore: cast_nullable_to_non_nullable
-as List<String>?,confirmHandler: freezed == confirmHandler ? _self.confirmHandler : confirmHandler // ignore: cast_nullable_to_non_nullable
+as List<String>?,paymentMethodConfigurationId: freezed == paymentMethodConfigurationId ? _self.paymentMethodConfigurationId : paymentMethodConfigurationId // ignore: cast_nullable_to_non_nullable
+as String?,confirmHandler: freezed == confirmHandler ? _self.confirmHandler : confirmHandler // ignore: cast_nullable_to_non_nullable
 as ConfirmHandler?,confirmTokenHandler: freezed == confirmTokenHandler ? _self.confirmTokenHandler : confirmTokenHandler // ignore: cast_nullable_to_non_nullable
 as ConfirmTokenHandler?,
   ));
@@ -6472,7 +6554,7 @@ as List<CardBrandCategory>,
 mixin _$LinkDisplayParams {
 
 /// Display configuration for Link
- LinkDisplay get linkDisplay;
+@JsonKey(name: 'display') LinkDisplay get linkDisplay;
 /// Create a copy of LinkDisplayParams
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -6505,7 +6587,7 @@ abstract mixin class $LinkDisplayParamsCopyWith<$Res>  {
   factory $LinkDisplayParamsCopyWith(LinkDisplayParams value, $Res Function(LinkDisplayParams) _then) = _$LinkDisplayParamsCopyWithImpl;
 @useResult
 $Res call({
- LinkDisplay linkDisplay
+@JsonKey(name: 'display') LinkDisplay linkDisplay
 });
 
 
@@ -6610,7 +6692,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LinkDisplay linkDisplay)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'display')  LinkDisplay linkDisplay)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LinkDisplayParams() when $default != null:
 return $default(_that.linkDisplay);case _:
@@ -6631,7 +6713,7 @@ return $default(_that.linkDisplay);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LinkDisplay linkDisplay)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'display')  LinkDisplay linkDisplay)  $default,) {final _that = this;
 switch (_that) {
 case _LinkDisplayParams():
 return $default(_that.linkDisplay);case _:
@@ -6651,7 +6733,7 @@ return $default(_that.linkDisplay);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LinkDisplay linkDisplay)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'display')  LinkDisplay linkDisplay)?  $default,) {final _that = this;
 switch (_that) {
 case _LinkDisplayParams() when $default != null:
 return $default(_that.linkDisplay);case _:
@@ -6666,11 +6748,11 @@ return $default(_that.linkDisplay);case _:
 @JsonSerializable()
 
 class _LinkDisplayParams implements LinkDisplayParams {
-  const _LinkDisplayParams({required this.linkDisplay});
+  const _LinkDisplayParams({@JsonKey(name: 'display') required this.linkDisplay});
   factory _LinkDisplayParams.fromJson(Map<String, dynamic> json) => _$LinkDisplayParamsFromJson(json);
 
 /// Display configuration for Link
-@override final  LinkDisplay linkDisplay;
+@override@JsonKey(name: 'display') final  LinkDisplay linkDisplay;
 
 /// Create a copy of LinkDisplayParams
 /// with the given fields replaced by the non-null parameter values.
@@ -6705,7 +6787,7 @@ abstract mixin class _$LinkDisplayParamsCopyWith<$Res> implements $LinkDisplayPa
   factory _$LinkDisplayParamsCopyWith(_LinkDisplayParams value, $Res Function(_LinkDisplayParams) _then) = __$LinkDisplayParamsCopyWithImpl;
 @override @useResult
 $Res call({
- LinkDisplay linkDisplay
+@JsonKey(name: 'display') LinkDisplay linkDisplay
 });
 
 
@@ -8416,8 +8498,8 @@ return $default(_that.spacing);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _FloatingConfig implements FloatingConfig {
   const _FloatingConfig({this.spacing});
   factory _FloatingConfig.fromJson(Map<String, dynamic> json) => _$FloatingConfigFromJson(json);
@@ -8713,8 +8795,8 @@ return $default(_that.style,_that.additionalInsets,_that.flat,_that.floating);ca
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _RowConfig implements RowConfig {
   const _RowConfig({this.style, this.additionalInsets, this.flat, this.floating});
   factory _RowConfig.fromJson(Map<String, dynamic> json) => _$RowConfigFromJson(json);
@@ -9024,8 +9106,8 @@ return $default(_that.row);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _EmbeddedPaymentElementAppearance implements EmbeddedPaymentElementAppearance {
   const _EmbeddedPaymentElementAppearance({this.row});
   factory _EmbeddedPaymentElementAppearance.fromJson(Map<String, dynamic> json) => _$EmbeddedPaymentElementAppearanceFromJson(json);
@@ -9650,6 +9732,280 @@ class __$CustomPaymentMethodConfigurationCopyWithImpl<$Res>
 customPaymentMethods: null == customPaymentMethods ? _self._customPaymentMethods : customPaymentMethods // ignore: cast_nullable_to_non_nullable
 as List<CustomPaymentMethod>,confirmCustomPaymentMethodCallback: freezed == confirmCustomPaymentMethodCallback ? _self.confirmCustomPaymentMethodCallback : confirmCustomPaymentMethodCallback // ignore: cast_nullable_to_non_nullable
 as ConfirmCustomPaymentMethodCallback?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$CardFundingFiltering {
+
+/// List of allowed card funding types. If not set, all types are accepted.
+ List<CardFundingType>? get allowedCardFundingTypes;
+/// Create a copy of CardFundingFiltering
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CardFundingFilteringCopyWith<CardFundingFiltering> get copyWith => _$CardFundingFilteringCopyWithImpl<CardFundingFiltering>(this as CardFundingFiltering, _$identity);
+
+  /// Serializes this CardFundingFiltering to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CardFundingFiltering&&const DeepCollectionEquality().equals(other.allowedCardFundingTypes, allowedCardFundingTypes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(allowedCardFundingTypes));
+
+@override
+String toString() {
+  return 'CardFundingFiltering(allowedCardFundingTypes: $allowedCardFundingTypes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CardFundingFilteringCopyWith<$Res>  {
+  factory $CardFundingFilteringCopyWith(CardFundingFiltering value, $Res Function(CardFundingFiltering) _then) = _$CardFundingFilteringCopyWithImpl;
+@useResult
+$Res call({
+ List<CardFundingType>? allowedCardFundingTypes
+});
+
+
+
+
+}
+/// @nodoc
+class _$CardFundingFilteringCopyWithImpl<$Res>
+    implements $CardFundingFilteringCopyWith<$Res> {
+  _$CardFundingFilteringCopyWithImpl(this._self, this._then);
+
+  final CardFundingFiltering _self;
+  final $Res Function(CardFundingFiltering) _then;
+
+/// Create a copy of CardFundingFiltering
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? allowedCardFundingTypes = freezed,}) {
+  return _then(_self.copyWith(
+allowedCardFundingTypes: freezed == allowedCardFundingTypes ? _self.allowedCardFundingTypes : allowedCardFundingTypes // ignore: cast_nullable_to_non_nullable
+as List<CardFundingType>?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [CardFundingFiltering].
+extension CardFundingFilteringPatterns on CardFundingFiltering {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CardFundingFiltering value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _CardFundingFiltering() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CardFundingFiltering value)  $default,){
+final _that = this;
+switch (_that) {
+case _CardFundingFiltering():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CardFundingFiltering value)?  $default,){
+final _that = this;
+switch (_that) {
+case _CardFundingFiltering() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CardFundingType>? allowedCardFundingTypes)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _CardFundingFiltering() when $default != null:
+return $default(_that.allowedCardFundingTypes);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CardFundingType>? allowedCardFundingTypes)  $default,) {final _that = this;
+switch (_that) {
+case _CardFundingFiltering():
+return $default(_that.allowedCardFundingTypes);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CardFundingType>? allowedCardFundingTypes)?  $default,) {final _that = this;
+switch (_that) {
+case _CardFundingFiltering() when $default != null:
+return $default(_that.allowedCardFundingTypes);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+@JsonSerializable(explicitToJson: true)
+class _CardFundingFiltering implements CardFundingFiltering {
+  const _CardFundingFiltering({final  List<CardFundingType>? allowedCardFundingTypes}): _allowedCardFundingTypes = allowedCardFundingTypes;
+  factory _CardFundingFiltering.fromJson(Map<String, dynamic> json) => _$CardFundingFilteringFromJson(json);
+
+/// List of allowed card funding types. If not set, all types are accepted.
+ final  List<CardFundingType>? _allowedCardFundingTypes;
+/// List of allowed card funding types. If not set, all types are accepted.
+@override List<CardFundingType>? get allowedCardFundingTypes {
+  final value = _allowedCardFundingTypes;
+  if (value == null) return null;
+  if (_allowedCardFundingTypes is EqualUnmodifiableListView) return _allowedCardFundingTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+
+/// Create a copy of CardFundingFiltering
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$CardFundingFilteringCopyWith<_CardFundingFiltering> get copyWith => __$CardFundingFilteringCopyWithImpl<_CardFundingFiltering>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$CardFundingFilteringToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CardFundingFiltering&&const DeepCollectionEquality().equals(other._allowedCardFundingTypes, _allowedCardFundingTypes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_allowedCardFundingTypes));
+
+@override
+String toString() {
+  return 'CardFundingFiltering(allowedCardFundingTypes: $allowedCardFundingTypes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$CardFundingFilteringCopyWith<$Res> implements $CardFundingFilteringCopyWith<$Res> {
+  factory _$CardFundingFilteringCopyWith(_CardFundingFiltering value, $Res Function(_CardFundingFiltering) _then) = __$CardFundingFilteringCopyWithImpl;
+@override @useResult
+$Res call({
+ List<CardFundingType>? allowedCardFundingTypes
+});
+
+
+
+
+}
+/// @nodoc
+class __$CardFundingFilteringCopyWithImpl<$Res>
+    implements _$CardFundingFilteringCopyWith<$Res> {
+  __$CardFundingFilteringCopyWithImpl(this._self, this._then);
+
+  final _CardFundingFiltering _self;
+  final $Res Function(_CardFundingFiltering) _then;
+
+/// Create a copy of CardFundingFiltering
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? allowedCardFundingTypes = freezed,}) {
+  return _then(_CardFundingFiltering(
+allowedCardFundingTypes: freezed == allowedCardFundingTypes ? _self._allowedCardFundingTypes : allowedCardFundingTypes // ignore: cast_nullable_to_non_nullable
+as List<CardFundingType>?,
   ));
 }
 

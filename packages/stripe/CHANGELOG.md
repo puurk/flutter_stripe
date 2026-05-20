@@ -1,3 +1,35 @@
+## 12.6.0
+
+**Features**:
+- added createRadarSession to support stripe radar sessions
+
+**Fixes**:
+- Bumped compile SDK android to sdk 36
+- iOS card details not complete issue on cardfield
+- #2385: correct termsDisplay type to Map<String, TermsDisplay>
+
+
+## 12.5.0
+**Features**:
+- Sync with Stripe React Native [0.61.0](https://github.com/stripe/stripe-react-native/releases/tag/v0.61.0)
+
+## 12.4.0
+**Fixes**
+- #2347: Fix card details not complete for dangerously update card details
+- #2350: Fix invalid methodcall on Android for cardfield
+
+## 12.3.0
+
+**Features**
+- Sync with Stripe React Native [0.58.0](https://github.com/stripe/stripe-react-native/releases/tag/v0.58.0) 
+
+**Fixes**
+- #2332 Android: Google Pay not appear on the PaymentSheet
+- #2321 Android: Wrap context with AppCompat theme for Google Pay button.
+- #2320 Android: add ProGuard rules to prevent 3D Secure crash.
+- #2314 Android: Card details not complete error when using dangerouslyUpdateCardDetails
+- #2307 Android: Paymentsheet card not focusable when tapping middle or bottom of the field.
+
 ## 12.2.0
 
 **Features**

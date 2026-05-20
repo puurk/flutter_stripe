@@ -2,12 +2,15 @@ package com.reactnativestripesdk
 
 import com.facebook.react.bridge.ReadableMap
 import com.reactnativestripesdk.utils.PaymentSheetException
+import com.reactnativestripesdk.utils.forEachKey
 import com.reactnativestripesdk.utils.getBooleanOr
 import com.reactnativestripesdk.utils.getIntOr
 import com.reactnativestripesdk.utils.getLongOr
 import com.reactnativestripesdk.utils.getStringList
 import com.reactnativestripesdk.utils.isEmpty
+import com.stripe.android.model.PaymentMethod
 import com.stripe.android.paymentelement.PaymentMethodOptionsSetupFutureUsagePreview
+import com.stripe.android.paymentsheet.CardFundingFilteringPrivatePreview
 import com.stripe.android.paymentsheet.PaymentSheet
 
 @Throws(PaymentSheetException::class)
@@ -26,6 +29,8 @@ internal fun buildIntentConfiguration(intentConfigurationParams: ReadableMap?): 
     paymentMethodTypes =
       intentConfigurationParams.getStringList("paymentMethodTypes")?.toList()
         ?: emptyList(),
+    paymentMethodConfigurationId =
+      intentConfigurationParams.getString("paymentMethodConfigurationId"),
     onBehalfOf = intentConfigurationParams.getString("onBehalfOf"),
   )
 }
@@ -75,6 +80,24 @@ private fun mapStringToLinkDisplay(value: String?): PaymentSheet.LinkConfigurati
     "never" -> PaymentSheet.LinkConfiguration.Display.Never
     else -> PaymentSheet.LinkConfiguration.Display.Automatic
   }
+
+internal fun mapToTermsDisplay(params: ReadableMap?): Map<PaymentMethod.Type, PaymentSheet.TermsDisplay>? {
+  val termsDisplayMap = params?.getMap("termsDisplay") ?: return null
+  val result = mutableMapOf<PaymentMethod.Type, PaymentSheet.TermsDisplay>()
+  termsDisplayMap.forEachKey { code ->
+    val paymentMethodType = PaymentMethod.Type.fromCode(code)
+    val termsDisplay =
+      when (termsDisplayMap.getString(code)) {
+        "never" -> PaymentSheet.TermsDisplay.NEVER
+        "automatic" -> PaymentSheet.TermsDisplay.AUTOMATIC
+        else -> null
+      }
+    if (paymentMethodType != null && termsDisplay != null) {
+      result[paymentMethodType] = termsDisplay
+    }
+  }
+  return result.ifEmpty { null }
+}
 
 private val mapIntToButtonType =
   mapOf(
@@ -226,3 +249,20 @@ internal fun mapToCardBrandCategory(brand: String): PaymentSheet.CardBrandAccept
     "discover" -> PaymentSheet.CardBrandAcceptance.BrandCategory.Discover
     else -> null
   }
+
+@OptIn(CardFundingFilteringPrivatePreview::class)
+internal fun mapToAllowedCardFundingTypes(params: ReadableMap?): List<PaymentSheet.CardFundingType>? {
+  val cardFundingFiltering = params?.getMap("cardFundingFiltering") ?: return null
+  val allowedTypes = cardFundingFiltering.getStringList("allowedCardFundingTypes") ?: return null
+
+  return allowedTypes
+    .mapNotNull { type ->
+      when (type) {
+        "debit" -> PaymentSheet.CardFundingType.Debit
+        "credit" -> PaymentSheet.CardFundingType.Credit
+        "prepaid" -> PaymentSheet.CardFundingType.Prepaid
+        "unknown" -> PaymentSheet.CardFundingType.Unknown
+        else -> null
+      }
+    }.ifEmpty { null }
+}

@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:stripe_platform_interface/src/models/ach_params.dart';
 import 'package:stripe_platform_interface/src/models/confirmation_token.dart';
@@ -10,11 +9,13 @@ import 'package:stripe_platform_interface/src/models/google_pay.dart';
 import 'package:stripe_platform_interface/src/models/intent_creation_callback_params.dart';
 import 'package:stripe_platform_interface/src/models/platform_pay.dart';
 import 'package:stripe_platform_interface/src/models/push_provisioning.dart';
+import 'package:stripe_platform_interface/src/models/radar_session.dart';
 import 'package:stripe_platform_interface/src/models/wallet.dart';
 import 'package:stripe_platform_interface/src/result_parser.dart';
 
 import 'models/app_info.dart';
 import 'models/card_details.dart';
+import 'models/collect_bank_account_result.dart';
 import 'models/errors.dart';
 import 'models/payment_intents.dart';
 import 'models/payment_methods.dart';
@@ -80,7 +81,7 @@ class MethodChannelStripe extends StripePlatform {
           _confirmTokenHandler != null) {
         final method = ResultParser<ConfirmationTokenResult>(
           parseJson: (json) => ConfirmationTokenResult.fromJson(json),
-        ).parse(result: call.arguments!, successResultKey: 'paymentMethod');
+        ).parse(result: call.arguments!, successResultKey: 'confirmationToken');
         _confirmTokenHandler!(method);
       } else if (call.method == 'onCustomPaymentMethodConfirmHandlerCallback' &&
           _confirmCustomPaymentMethodCallback != null) {
@@ -243,8 +244,18 @@ class MethodChannelStripe extends StripePlatform {
   Future<PaymentSheetPaymentOption?> initPaymentSheet(
     SetupPaymentSheetParameters params,
   ) async {
+    final paramsJson = params.toJson();
+    final intentConfig = paramsJson['intentConfiguration'];
+    if (intentConfig is Map<String, dynamic>) {
+      if (params.intentConfiguration?.confirmHandler != null) {
+        intentConfig['confirmHandler'] = true;
+      }
+      if (params.intentConfiguration?.confirmTokenHandler != null) {
+        intentConfig['confirmationTokenConfirmHandler'] = true;
+      }
+    }
     final result = await _methodChannel.invokeMethod('initPaymentSheet', {
-      'params': params.toJson(),
+      'params': paramsJson,
     });
     if (params.intentConfiguration?.confirmHandler != null) {
       _confirmHandler = params.intentConfiguration?.confirmHandler;
@@ -300,9 +311,7 @@ class MethodChannelStripe extends StripePlatform {
   }
 
   @override
-  Future<void> initCustomerSheet(
-    CustomerSheetInitParams params,
-  ) async {
+  Future<void> initCustomerSheet(CustomerSheetInitParams params) async {
     // Convert deprecated constructor to adapter variant for native SDK compatibility
     final normalizedParams = params.map(
       (deprecated) => CustomerSheetInitParams.adapter(
@@ -571,7 +580,7 @@ class MethodChannelStripe extends StripePlatform {
   }
 
   @override
-  Future<PaymentIntent> collectBankAccount({
+  Future<CollectBankAccountResult> collectBankAccount({
     required bool isPaymentIntent,
     required String clientSecret,
     required CollectBankAccountParams params,
@@ -585,13 +594,11 @@ class MethodChannelStripe extends StripePlatform {
 
     _financialConnectionsEventHandler = params.onEvent;
 
-    return ResultParser<PaymentIntent>(
-      parseJson: (json) => PaymentIntent.fromJson(json),
-    ).parse(result: result!, successResultKey: 'paymentIntent');
+    return CollectBankAccountResult.fromJson(result!);
   }
 
   @override
-  Future<PaymentIntent> verifyPaymentIntentWithMicrodeposits({
+  Future<CollectBankAccountResult> verifyPaymentIntentWithMicrodeposits({
     required bool isPaymentIntent,
     required String clientSecret,
     required VerifyMicroDepositsParams params,
@@ -603,9 +610,7 @@ class MethodChannelStripe extends StripePlatform {
           'clientSecret': clientSecret,
         });
 
-    return ResultParser<PaymentIntent>(
-      parseJson: (json) => PaymentIntent.fromJson(json),
-    ).parse(result: result!, successResultKey: 'paymentIntent');
+    return CollectBankAccountResult.fromJson(result!);
   }
 
   @override
@@ -749,6 +754,11 @@ class MethodChannelStripe extends StripePlatform {
   }
 
   @override
+  void setConfirmHandler(ConfirmHandler? handler) {
+    _confirmHandler = handler;
+  }
+
+  @override
   Future<CanAddCardToWalletResult> canAddCardToWallet(
     CanAddCardToWalletParams params,
   ) async {
@@ -761,6 +771,25 @@ class MethodChannelStripe extends StripePlatform {
     }
 
     return CanAddCardToWalletResult.fromJson(result);
+  }
+
+  @override
+  Future<RadarSession> createRadarSession() async {
+    final result = await _methodChannel.invokeMapMethod<String, dynamic>(
+      'createRadarSession',
+    );
+    if (result!['error'] != null) {
+      throw StripeException.fromJson(result);
+    }
+    return RadarSession.fromJson(result);
+  }
+
+  @override
+  Future<List<String>> pollAndClearPendingStripeConnectUrls() async {
+    final result = await _methodChannel.invokeMethod<List<dynamic>>(
+      'pollAndClearPendingStripeConnectUrls',
+    );
+    return result?.cast<String>() ?? [];
   }
 
   @override
@@ -787,7 +816,7 @@ class MethodChannelStripeFactory {
       'flutter.stripe/payments',
       JSONMethodCodec(),
     ),
-    platformIsIos: Platform.isIOS,
-    platformIsAndroid: Platform.isAndroid,
+    platformIsIos: defaultTargetPlatform == TargetPlatform.iOS,
+    platformIsAndroid: defaultTargetPlatform == TargetPlatform.android,
   );
 }
